@@ -1,0 +1,53 @@
+/* 移除导航栏标题链接的下划线 */
+.VPNavBarTitle a {
+  text-decoration: none !important;
+}
+
+/* 移除导航栏标题链接在悬停时的下划线 */
+.VPNavBarTitle a:hover {
+  text-decoration: none !important;
+}
+
+/* 移除导航栏标题链接在访问过时的下划线 */
+.VPNavBarTitle a:visited {
+  text-decoration: none !important;
+}
+
+/* 移除导航栏标题链接在激活时的下划线 */
+.VPNavBarTitle a:active {
+  text-decoration: none !important;
+}
+
+/* 移除页脚链接的下划线 */
+.VPFooter a {
+  text-decoration: none !important;
+}
+
+/* 移除页脚链接在悬停时的下划线 */
+.VPFooter a:hover {
+  text-decoration: none !important;
+}
+
+/* 移除页脚链接在访问过时的下划线 */
+.VPFooter a:visited {
+  text-decoration: none !important;
+}
+
+/* 移除页脚链接在激活时的下划线 */
+.VPFooter a:active {
+  text-decoration: none !important;
+}
+
+/* 页脚分隔符样式 */
+.footer-separator {
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  color: #6b7280;
+  user-select: none;
+}
+
+/* 暗色模式下的分隔符样式 */
+.dark .footer-separator {
+  color: #bfdbfe;
+} 

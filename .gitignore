@@ -1,0 +1,11 @@
+.vitepress/cache
+.vitepress/dist
+
+node_modules
+
+.DS_Store
+
+api-examples.md
+markdown-examples.md
+
+.env

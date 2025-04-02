@@ -1,0 +1,109 @@
+name: 部署到生产环境
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+      
+      - name: 设置 Node.js 环境
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+      
+      - name: 构建项目
+        run: pnpm build
+      
+      - name: 打包上传文件
+        run: |
+          # 创建包含必要文件的部署目录
+          mkdir -p deploy
+          
+          # 复制 VitePress 构建产物
+          cp -r .vitepress/dist/* deploy/
+          
+          # 显示文件夹总大小
+          echo "部署目录总大小："
+          du -sh deploy/
+
+          echo "开始传输文件..."
+          # 确保 .ssh 目录存在并设置正确权限
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          
+          # 将 SSH 私钥写入临时文件
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # 添加服务器到 known_hosts
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          
+          echo "开始使用rsync传输文件到服务器..."
+          if rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            ./deploy/ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/tmp/notebook/; then
+            echo "✅ 文件传输成功！"
+          else
+            echo "❌ 文件传输失败，退出代码: $?"
+            exit 1
+          fi
+
+          # 删除临时文件
+          rm -f ~/.ssh/known_hosts
+          rm -f ~/.ssh/id_rsa
+          echo "文件传输完成"
+      
+      - name: 配置服务器并部署文件
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            # 设置变量
+            WEB_ROOT="${{ secrets.REMOTE_TARGET_DIR }}"
+            TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+            NEW_VERSION="$WEB_ROOT/versions/v$TIMESTAMP"
+            CURRENT_LINK="$WEB_ROOT/current"
+            
+            echo "开始部署流程..."
+            
+            # 确保目录结构存在
+            mkdir -p "$NEW_VERSION" "$WEB_ROOT/versions"
+            
+            # 1. 复制新文件到新版本目录
+            echo "从临时目录复制文件到新版本目录..."
+            rsync -a /tmp/notebook/ "$NEW_VERSION/"
+            
+            # 2. 原子操作切换软链接
+            echo "切换到新版本..."
+            ln -sfn "$NEW_VERSION" "$CURRENT_LINK.new"
+            mv -T "$CURRENT_LINK.new" "$CURRENT_LINK"
+            
+            # 3. 清理旧版本，保留最近5个
+            echo "清理旧版本..."
+            cd "$WEB_ROOT/versions"
+            ls -1tr | head -n -5 | xargs -r rm -rf
+
+            echo "部署完成：$(date)"
+            echo "当前版本: v$TIMESTAMP"

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect x="30" y="30" width="140" height="140" rx="20" fill="white" stroke="#333" stroke-width="5"/>
+  <rect x="45" y="45" width="110" height="110" rx="15" fill="none" stroke="#333" stroke-width="3"/>
+  <line x1="60" y1="65" x2="140" y2="65" stroke="#666" stroke-width="3"/>
+  <line x1="60" y1="85" x2="140" y2="85" stroke="#666" stroke-width="3"/>
+  <line x1="60" y1="105" x2="140" y2="105" stroke="#666" stroke-width="3"/>
+  <path d="M140 30v35l-12-6-12 6V30z" fill="#FF5722"/>
+</svg>
