@@ -1,8 +1,8 @@
-# $n$维向量
+# n维向量
 
-## 2.1 $n$维向量及其运算
+## 2.1 n维向量及其运算
 
-### 2.1.1 $n$维向量的概念
+### 2.1.1 n维向量的概念
 
 ​	每个分量都为0的向量称为零向量。$n$维零向量：$\boldsymbol{\mathrm{0}}=\boldsymbol\theta=\pmatrix{0\\0\\\vdots\\0}$.
 
@@ -10,7 +10,7 @@
 
 ​	单位向量$\boldsymbol\varepsilon_n$：$\boldsymbol\varepsilon_1=\pmatrix{1\\0\\0\\\vdots\\0}$，$\boldsymbol\varepsilon_2=\pmatrix{0\\1\\0\\\vdots\\0}$，……
 
-### 2.1.2 $n$维向量的线性运算
+### 2.1.2 n维向量的线性运算
 
 ​	$n$维向量的加法与数乘统称为线性运算，同矩阵的线性运算。
 
@@ -44,7 +44,7 @@
 
 ​	设$\boldsymbol A_{s\times n}=\pmatrix{\boldsymbol\alpha_1&\ldots&\boldsymbol\alpha_n}$，则$\boldsymbol A\boldsymbol x=\boldsymbol\beta$有解当且仅当$\boldsymbol\beta$可以由$\boldsymbol\alpha_1,\ldots,\boldsymbol\alpha_n$线性表示。
 
-#### $n$维基本单位向量组
+#### n维基本单位向量组
 
 ​	$\boldsymbol A=\pmatrix{\boldsymbol\varepsilon_1&\ldots&\boldsymbol\varepsilon_n}=\pmatrix{1&&\\&\ddots&\\&&1}=\boldsymbol E_n$
 
@@ -208,7 +208,7 @@ $$
 
 ## 2.6 内积与正交矩阵
 
-### 2.6.1 $n$维向量的内积
+### 2.6.1 n维向量的内积
 
 #### 内积的定义
 
