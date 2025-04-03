@@ -45,6 +45,14 @@ export default defineConfig({
           ]
         }
       ],
+      '/probability-and-statistics/': [
+        {
+          text: '概率论与统计',
+          items: [
+            { text: '第一章：随机事件及其概率', link: '/probability-and-statistics/ch01-probability' }
+          ]
+        }
+      ],
       // '/data-structures/': [
       //   {
       //     text: '数据结构',

@@ -34,6 +34,7 @@ features:
   - icon: 🎲
     title: 概率论与数理统计
     details: Probability and Statistics
+    link: /probability-and-statistics/
 
   # - icon: 🖥️
   #   title: 操作系统
