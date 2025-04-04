@@ -23,6 +23,10 @@ export default defineConfig({
       provider: 'local'
     },
     logo: '/favicon.svg',
+    outline: {
+      level: [2, 6],
+      label: '目录'
+    },
     footer: {
       message: '© 2025 EM Notebook<span class="footer-separator">|</span><a href="https://beian.miit.gov.cn/" target="_blank">陕ICP备2023008974号-1</a>',
     },
