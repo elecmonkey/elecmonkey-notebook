@@ -15,8 +15,8 @@
 ## 章节概览
 
 1. [第一章：随机事件及其概率](/probability-and-statistics/ch01-probability) - 随机事件的基本概念和概率计算
+2. [第二章：随机变量及其概率分布](/probability-and-statistics/ch02-random-variables) - 随机变量的分布函数、离散型与连续型随机变量
 
 ## 参考资料
 
 - 《随机数学基础》 - 乔会杰 徐伟娟 等
-- [Khan Academy 概率与统计](https://www.khanacademy.org/math/statistics-probability) - 直观理解概率与统计 
