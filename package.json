@@ -10,7 +10,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "MIT",
+  "license": "CC BY-NC-SA 4.0",
   "packageManager": "pnpm@10.7.0",
   "devDependencies": {
     "vitepress": "^1.6.3",

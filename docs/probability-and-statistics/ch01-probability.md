@@ -90,30 +90,38 @@
 
 1. **交换律**：
    $$
+   \begin{align*}
    A \cup B = B \cup A\\
    A \cap B = B \cap A
+   \end{align*}
    $$
    
 2. **结合律**：
    $$
+   \begin{align*}
    (A \cup B) \cup C = A \cup (B \cup C)\\
    (A \cap B) \cap C = A \cap (B \cap C)
+   \end{align*}
    $$
-
+   
 3. **分配律**：
    $$
+   \begin{align*}
    A \cup (B \cap C) = (A \cup B) \cap (A \cup C)\\
    A \cap (B \cup C) = (A \cap B) \cup (A \cap C)\\
    \bigcup_{i \in I} \left( A \cap B_i \right) = A \cap \left( \bigcup_{i \in I} B_i \right)\\
    \bigcap_{i \in I} \left( A \cup B_i \right) = A \cup \left( \bigcap_{i \in I} B_i \right)
+   \end{align*}
    $$
-
+   
 4. **德摩根律**：
    $$
+   \begin{align*}
    \overline{A \cup B} = \overline{A} \cap \overline{B}\\
    \overline{A \cap B} = \overline{A} \cup \overline{B}\\
    \overline{\bigcup_{i \in I} A_i} = \bigcap_{i \in I} \overline{A_i}\\
    \overline{\bigcap_{i \in I} A_i} = \bigcup_{i \in I} \overline{A_i}
+   \end{align*}
    $$
 
 ## 1.2 随机事件的概率
@@ -300,7 +308,7 @@ $$
 **性质**：
 
 1. 若$A$和$B$独立，则$A$和$\overline{B}$、$\overline{A}$和$B$、$\overline{A}$和$\overline{B}$也独立。这四个命题间两两互为充要条件。
-2. 独立性与互斥性不同：互斥事件$A$和$B$满足$P(A \cap B) = 0$，而独立事件$A$和$B$满足$P(A \cap B) = P(A) \cdot P(B)$。
+2. 独立性与互斥性不同：互斥事件$A$和$B$满足$P(A \cap B) = 0$，而独立事件$A$和$B$满足$P(A \cap B) = P(A) \cdot P(B)$，两者不能同时成立。
 
 ### 1.5.2 多个事件的独立性
 
