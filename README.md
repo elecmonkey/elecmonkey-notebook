@@ -1,10 +1,13 @@
 # EM Notebook
 
-A modern notebook built with VitePress.
+A box of notebooks built with VitePress.
 
 ## 技术栈
 
-- **VitePress** - 基于 Vite 的静态网站生成器
+- **VitePress** - 基于 Vite & Vue 的静态网站生成器
+- **Vue.js** - 渐进式 JavaScript 框架
+- **Markdown** - 轻量级标记语言
+- **GitHub Actions** - 自动化构建和部署
 
 ## 开发流程
 
@@ -31,6 +34,7 @@ pnpm preview
 ├── .vitepress/           # VitePress 配置
 │   ├── config.mts        # 主配置文件
 │   ├── theme/            # 自定义主题
+│   │   └── components    # 自定义组件
 │   └── dist/             # 构建输出
 ├── public/               # 静态资源
 └── .github/              # GitHub 配置
