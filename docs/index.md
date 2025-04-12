@@ -41,48 +41,53 @@ hero:
   />
 </SubjectCardContainer>
 
-<!-- <SubjectCardContainer :columns="4">
+<SubjectCardContainer :columns="4">
   <SubjectCard 
     icon="🖥️" 
     title="操作系统" 
     details="Operating System" 
-    type="pending"
+    link="/operating-systems/"
+    type="progress"
   />
   <SubjectCard 
     icon="🌳" 
     title="数据结构" 
     details="Data Structure" 
+    type="pending"
   />
   <SubjectCard 
     icon="⚙️" 
     title="计算机组成原理" 
     details="Computer Organization"
+    type="pending"
   />
   <SubjectCard 
     icon="🖥️" 
     title="计算机网络" 
     details="Computer Networking"
+    type="pending"
   />
-</SubjectCardContainer> -->
+</SubjectCardContainer>
 
-<SubjectCardContainer :columns="1">
+<SubjectCardContainer :columns="2">
   <SubjectCard 
     icon="🧮" 
     title="算法设计与分析" 
-    details="Algorithms" 
-    type="progress"
+    details="Algorithms"
+    type="pending"
   />
   <!-- <SubjectCard 
     icon="🌐" 
     title="计算机网络" 
     details="Computer Networking" 
-  />
+  /> -->
   <SubjectCard 
     icon="🏗️" 
     title="软件体系与结构设计" 
     details="Software Architecture"
+    type="pending"
   />
-  <SubjectCard 
+  <!-- <SubjectCard 
     icon="🤖" 
     title="机器学习" 
     details="Machine Learning"
