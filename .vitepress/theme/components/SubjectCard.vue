@@ -10,7 +10,7 @@
       </p>
     </article>
   </a>
-  <div class="subject-card" v-else>
+  <div class="subject-card no-link" v-else>
     <article class="card-box">
       <div class="card-icon" v-html="icon"></div>
       <h2 class="card-title" v-html="title"></h2>
@@ -19,6 +19,7 @@
         <span v-if="type === 'progress'">&lt;In Progress&gt;</span>
         <span v-else-if="type === 'pending'">&lt;Pending&gt;</span>
       </p>
+      <div class="gray-overlay"></div>
     </article>
   </div>
 </template>
@@ -79,6 +80,33 @@ a.subject-card:hover {
 div.subject-card:hover {
   border-color: var(--vp-c-brand-1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 无链接卡片的蒙层样式 */
+.no-link .card-box {
+  position: relative;
+  opacity: 0.5;
+}
+
+.no-link .card-icon,
+.no-link .card-title,
+.no-link .card-details,
+.no-link .card-type {
+  color: var(--vp-c-text-3);
+}
+
+.no-link .gray-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0);
+  pointer-events: none;
+}
+
+:root.dark .no-link .gray-overlay {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .card-box {
