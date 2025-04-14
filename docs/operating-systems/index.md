@@ -16,18 +16,16 @@
 
 ## 章节概览
 
-<!-- 1. [第一章：操作系统]/operating-systems/ch01-introduction) - 操作系统的定义、功能、历史和类型
-2. [第二章：操作系统结构]/operating-systems/ch02-architecture) - 系统调用、操作系统服务、系统结构设计
-3. [第三章：进程管理]/operating-systems/ch03-process-management) - 进程概念、进程调度、进程通信
-4. [第四章：线程]/operating-systems/ch04-threads) - 线程模型、多线程编程、线程实现
-5. [第五章：CPU调度]/operating-systems/ch05-cpu-scheduling) - 调度算法、多处理器调度、实时调度 -->
-6. [第六章：进程同步](/operating-systems/ch06-process-sync) - 临界区问题、同步机制、经典同步问题
-<!-- 7. [第七章：死锁]/operating-systems/ch07-deadlocks) - 死锁特征、预防与避免、检测与恢复
-8. [第八章：内存管理]/operating-systems/ch08-memory-management) - 内存分配、虚拟内存、页面置换算法
-9. [第九章：文件系统]/operating-systems/ch09-file-systems) - 文件概念、目录结构、文件系统实现
-10. [第十章：I/O系统]/operating-systems/ch10-io-systems) - I/O硬件、接口、内核子系统
-11. [第十一章：大容量存储]/operating-systems/ch11-storage) - 磁盘调度、RAID、存储管理
-12. [第十二章：保护与安全]/operating-systems/ch12-security) - 保护机制、访问控制、安全威胁与防御 -->
+1. [第一章：介绍](/operating-systems/ch01-introduction) - 操作系统的定义、功能、历史和类型
+2. [第二章：操作系统结构](/operating-systems/ch02-architecture) - 系统调用、操作系统服务、系统结构设计
+3. [第三章：进程](/operating-systems/ch03-process) - 进程概念、进程调度、进程通信
+4. [第四章：线程](/operating-systems/ch04-threads) - 线程模型、多线程编程、线程实现
+5. [第五章：CPU调度](/operating-systems/ch05-cpu-scheduling) - 调度算法、多处理器调度、实时调度
+6. [第六章：同步](/operating-systems/ch06-synchronization) - 临界区问题、同步机制、经典同步问题、死锁
+7. 第七章：内存管理 - 内存管理策略、虚拟内存、页面置换算法
+8. 第八章：文件系统 - 文件系统结构、文件系统实现、文件系统管理
+9. 第九章：大容量存储 - 大容量存储管理、磁盘调度、RAID
+10. 第十章：I/O系统 - I/O系统、设备管理、I/O调度
 
 ## 参考资料
 
