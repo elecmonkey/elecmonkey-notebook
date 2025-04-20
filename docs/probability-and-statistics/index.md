@@ -14,8 +14,9 @@
 
 ## 章节概览
 
-1. [第一章：随机事件及其概率](/probability-and-statistics/ch01-probability) - 随机事件的基本概念和概率计算
-2. [第二章：随机变量及其概率分布](/probability-and-statistics/ch02-random-variables) - 随机变量的分布函数、离散型与连续型随机变量
+1. [第一章：随机事件及其概率](/probability-and-statistics/ch01-probability) - 随机事件的基本概念和概率计算，条件概率，全概率公式，贝叶斯公式，事件的独立性
+2. [第二章：随机变量及其概率分布](/probability-and-statistics/ch02-random-variables) - 随机变量的分布函数，离散型与连续型随机变量
+3. [第三章：随机向量及其概率分布](/probability-and-statistics/ch03-random-vectors) - 随机向量（多维随机变量）的分布函数，离散型与连续型随机向量，边缘分布与条件分布，随机变量的独立性，卷积公式
 
 ## 参考资料
 
