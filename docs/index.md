@@ -3,20 +3,20 @@ layout: home
 
 hero:
   name: EM Notebook
-  tagline: 一箱笔记本。
+  # tagline: 一箱笔记本。
 
-  actions:
-    - theme: brand
-      text: About
-      link: /about/
+  # actions:
+  #   - theme: brand
+  #     text: About
+  #     link: /about/
 
-    - theme: alt
-      text: GitHub
-      link: https://github.com/elecmonkey/elecmonkey-notebook
+  #   - theme: alt
+  #     text: GitHub
+  #     link: https://github.com/elecmonkey/elecmonkey-notebook
 
-    - theme: alt
-      text: Elecmonkey的小花园
-      link: https://www.elecmonkey.com
+  #   - theme: alt
+  #     text: Elecmonkey的小花园
+  #     link: https://www.elecmonkey.com
 ---
 
 <SubjectCardContainer :columns="3">
@@ -31,7 +31,6 @@ hero:
     title="概率论与数理统计" 
     details="Probability and Statistics" 
     link="/probability-and-statistics/"
-    type="progress"
   />
   <SubjectCard 
     icon="🔢" 
@@ -62,34 +61,30 @@ hero:
     type="pending"
   />
   <SubjectCard 
-    icon="🖥️" 
+    icon="🌐" 
     title="计算机网络" 
     details="Computer Networking"
     type="pending"
   />
 </SubjectCardContainer>
 
-<SubjectCardContainer :columns="2">
+<SubjectCardContainer :columns="3">
   <SubjectCard 
     icon="🧮" 
     title="算法设计与分析" 
     details="Algorithms"
     type="pending"
   />
-  <!-- <SubjectCard 
-    icon="🌐" 
-    title="计算机网络" 
-    details="Computer Networking" 
-  /> -->
   <SubjectCard 
-    icon="🏗️" 
-    title="软件体系与结构设计" 
-    details="Software Architecture"
+    icon="🗄️" 
+    title="数据库原理" 
+    details="Database Principles"
     type="pending"
   />
-  <!-- <SubjectCard 
-    icon="🤖" 
-    title="机器学习" 
-    details="Machine Learning"
-  /> -->
+  <SubjectCard 
+    icon="🔄" 
+    title="编译原理" 
+    details="Compiler Principles"
+    type="pending"
+  />
 </SubjectCardContainer>

@@ -39,7 +39,7 @@ export default {
 
 <style scoped>
 .subject-container {
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
   width: 100%;
 }
 
