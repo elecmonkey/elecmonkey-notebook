@@ -138,7 +138,7 @@ div.subject-card:hover {
   line-height: 1.4;
   font-size: 16px;
   font-weight: 600;
-  margin: 0 0 14px 0;
+  margin: 0px;
   color: var(--vp-c-text-1);
   border: none;
 }
@@ -147,15 +147,15 @@ div.subject-card:hover {
   flex-grow: 1;
   margin: 0 0 0 0;
   line-height: 1.6;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 400;
   color: var(--vp-c-text-2);
 }
 
 .card-type {
-  margin: 0;
-  line-height: 1.4;
-  font-size: 14px;
+  margin: 5px 0 0 0;
+  line-height: 1.2;
+  font-size: 12px;
   font-style: italic;
   color: var(--vp-c-text-2);
 }
