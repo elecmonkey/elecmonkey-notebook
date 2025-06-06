@@ -46,7 +46,6 @@ hero:
     title="操作系统" 
     details="Operating System" 
     link="/operating-systems/"
-    type="progress"
   />
   <SubjectCard 
     icon="🌳" 
