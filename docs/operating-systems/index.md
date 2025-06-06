@@ -22,10 +22,10 @@
 4. [第四章：线程](/operating-systems/ch04-threads) - 线程模型、多线程编程、线程实现
 5. [第五章：CPU调度](/operating-systems/ch05-cpu-scheduling) - 调度算法、多处理器调度、实时调度
 6. [第六章：同步](/operating-systems/ch06-synchronization) - 临界区问题、同步机制、经典同步问题、死锁
-7. 第七章：内存管理 - 内存管理策略、虚拟内存、页面置换算法
-8. 第八章：文件系统 - 文件系统结构、文件系统实现、文件系统管理
-9. 第九章：大容量存储 - 大容量存储管理、磁盘调度、RAID
-10. 第十章：I/O系统 - I/O系统、设备管理、I/O调度
+7. [第七章：内存管理](/operating-systems/ch07-memory) - 内存管理策略、虚拟内存、页面置换算法
+8. [第八章：文件系统](/operating-systems/ch08-file-system) - 文件系统结构、文件系统实现、文件系统管理
+9. [第九章：大容量存储](/operating-systems/ch09-mass-storage) - 大容量存储管理、磁盘调度、RAID
+10. [第十章：I/O系统](/operating-systems/ch10-io) - I/O系统、设备管理、I/O调度
 
 ## 参考资料
 
