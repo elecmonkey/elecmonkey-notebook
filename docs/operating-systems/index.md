@@ -31,3 +31,7 @@
 
 - 《操作系统概念》(Operating System Concepts) - Abraham Silberschatz, Peter B. Galvin, Greg Gagne
 - 《操作系统导论》(Operating Systems: Three Easy Pieces) - Remzi Arpaci-Dusseau, Andrea C. Arpaci-Dusseau
+
+## 相关项目
+
+- [os-for-frontender](https://github.com/elecmonkey/os-for-frontender) - 使用 TypeScript 模拟各种操作系统算法
