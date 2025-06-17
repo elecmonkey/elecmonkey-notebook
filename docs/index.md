@@ -72,7 +72,7 @@ hero:
     icon="🧮" 
     title="算法设计与分析" 
     details="Algorithms"
-    type="pending"
+    link="/algorithms/"
   />
   <SubjectCard 
     icon="🗄️" 

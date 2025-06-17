@@ -18,13 +18,6 @@ title: 关于
 
 内容会不断更新和完善，欢迎[交流或指正](https://github.com/elecmonkey/elecmonkey-notebook/issues)。
 
-## 技术栈
-
-- [VitePress](https://vitepress.dev/) - 基于 Vite & Vue 的静态网站生成器
-- [Vue.js](https://vuejs.org/) - 渐进式 JavaScript 框架
-- Markdown - 轻量级标记语言
-- [GitHub Actions](https://github.com/features/actions) - 自动化构建和部署
-
 ## 联系方式
 
 - 个人网站：[Elecmonkey的小花园](https://www.elecmonkey.com)
