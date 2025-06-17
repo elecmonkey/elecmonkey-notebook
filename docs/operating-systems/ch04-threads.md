@@ -216,27 +216,173 @@ Solaris 2、IRIX。
 
 ### 4.3.1 POSIX Pthreads
 
-POSIX标准扩展，支持用户态或内核态实现。  广泛用于UNIX系统（如Linux、macOS）。  
+Pthreads (POSIX Threads) 是 IEEE POSIX 1003.1c 标准定义的线程 API，为C/C++语言提供了创建和管理线程的一套标准接口。它是 UNIX-like 系统（如 Linux、macOS、Solaris）上最常用的线程库，支持用户态和内核态的线程实现，通常采用**一对一模型**。
 
-**代码示例**（计算1到N的和）：
+Pthreads 提供了丰富的功能，包括线程创建、同步（互斥锁、条件变量）、线程属性管理、线程特定数据等。
+
+#### 核心 Pthreads API
+
+1.  **`pthread_create()`：创建线程**
+    *   **功能**：用于创建一个新的线程并使其开始执行。
+    *   **签名**：`int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void *), void *restrict arg);`
+    *   **参数**：
+        *   `thread`：指向 `pthread_t` 类型的指针，用于存储新创建线程的 ID。
+        *   `attr`：指向 `pthread_attr_t` 类型的指针，用于指定线程的属性（如栈大小、调度策略、分离状态等）。传入 `NULL` 表示使用默认属性。
+        *   `start_routine`：函数指针，新线程将从该函数开始执行。这个函数必须接受一个 `void *` 类型的参数并返回 `void *`。
+        *   `arg`：传递给 `start_routine` 函数的参数。如果不需要传递参数，可传入 `NULL`。
+    *   **返回值**：成功返回0，失败返回错误码（非零）。
+    *   **示例**：
+        ```c
+        #include <pthread.h>
+        #include <stdio.h>
+        #include <stdlib.h>
+
+        void *my_thread_function(void *arg) {
+            char *message = (char *)arg;
+            printf("Hello from thread! Message: %s\n", message);
+            pthread_exit(NULL); // 线程正常退出
+        }
+
+        int main() {
+            pthread_t tid;
+            char *msg = "Hello from main!";
+            if (pthread_create(&tid, NULL, my_thread_function, (void *)msg) != 0) {
+                fprintf(stderr, "Error creating thread\n");
+                return 1;
+            }
+            printf("Main thread created child thread with ID: %lu\n", tid);
+            pthread_join(tid, NULL); // 等待子线程结束
+            return 0;
+        }
+        ```
+
+2.  **`pthread_exit()`：线程终止**
+    *   **功能**：用于显式地终止调用线程的执行。线程终止后，其资源（如栈）将被回收。
+    *   **签名**：`void pthread_exit(void *retval);`
+    *   **参数**：`retval` 是一个指向线程返回值的指针。这个值可以通过 `pthread_join()` 被其他线程获取。
+    *   **注意**：当线程的 `start_routine` 函数返回时，也会隐式调用 `pthread_exit(NULL)`。避免从线程函数直接 `return`，尤其是在使用 `pthread_join` 等待返回值时。
+
+3.  **`pthread_join()`：等待线程终止**
+    *   **功能**：阻塞调用线程（通常是主线程），直到指定的线程终止。这允许父线程等待子线程完成其工作，并可以获取子线程的返回值。
+    *   **签名**：`int pthread_join(pthread_t thread, void **retval);`
+    *   **参数**：
+        *   `thread`：要等待终止的线程的 ID。
+        *   `retval`：一个指向 `void *` 的指针的地址，用于存储目标线程的返回值。如果不需要返回值，可以传入 `NULL`。
+    *   **返回值**：成功返回0，失败返回错误码。
+    *   **作用**：主要用于线程的同步和资源回收。一个可join的线程在其 `pthread_join` 后才会完全释放其系统资源。
+
+4.  **`pthread_detach()`：分离线程**
+    *   **功能**：将一个线程标记为"分离"状态。一旦线程被分离，当它终止时，其所有资源将立即由系统回收，无需其他线程 `join` 它。分离的线程不能再被 `join`。
+    *   **签名**：`int pthread_detach(pthread_t thread);`
+    *   **参数**：`thread` 是要分离的线程的 ID。
+    *   **使用场景**：如果一个线程创建后不需要等待其完成或获取其返回值，就可以将其分离，以避免创建"僵尸线程"资源。默认情况下，线程是可join的。
+
+5.  **`pthread_self()`：获取当前线程ID**
+    *   **功能**：获取调用线程自身的线程 ID。
+    *   **签名**：`pthread_t pthread_self(void);`
+    *   **返回值**：返回当前线程的 ID。
+
+#### 线程属性 (`pthread_attr_t`)
+
+`pthread_attr_t` 结构体用于在创建线程时指定线程的各种属性，例如：
+
+*   **分离状态 (detach state)**：设置为 `PTHREAD_CREATE_DETACHED` 使线程创建后立即分离，或 `PTHREAD_CREATE_JOINABLE` 使其可被 `join`（默认）。
+*   **栈大小 (stack size)**：自定义线程栈的大小。
+*   **调度策略和优先级 (scheduling policy and priority)**：影响线程如何被操作系统调度。
+
+**常用函数**：
+
+*   `pthread_attr_init(pthread_attr_t *attr)`：初始化线程属性对象，设置为默认值。
+*   `pthread_attr_destroy(pthread_attr_t *attr)`：销毁线程属性对象，释放资源。
+*   `pthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate)`：设置线程的分离状态。
+
+#### 线程同步机制（简述）
+
+Pthreads 提供了多种同步原语，用于协调多线程对共享资源的访问，防止数据竞争和不一致。
+
+1.  **互斥锁 (Mutexes)**
+    *   **API**：`pthread_mutex_init()`、`pthread_mutex_lock()`、`pthread_mutex_unlock()`、`pthread_mutex_destroy()`。
+    *   **功能**：用于保护临界区，确保在任何给定时刻只有一个线程可以访问共享数据。
+    *   **示例**：
+        ```c
+        // 伪代码
+        pthread_mutex_t mutex;
+        // pthread_mutex_init(&mutex, NULL);
+        // ...
+        pthread_mutex_lock(&mutex);
+        // 访问共享资源 (临界区)
+        pthread_mutex_unlock(&mutex);
+        // ...
+        // pthread_mutex_destroy(&mutex);
+        ```
+
+2.  **条件变量 (Condition Variables)**
+    *   **API**：`pthread_cond_init()`、`pthread_cond_wait()`、`pthread_cond_signal()`、`pthread_cond_broadcast()`、`pthread_cond_destroy()`。
+    *   **功能**：允许线程等待某个条件为真。通常与互斥锁配合使用，以避免忙等待和死锁。
+    *   `pthread_cond_wait()`：原子性地释放互斥锁并等待条件变量被通知。
+    *   `pthread_cond_signal()`：唤醒一个等待在条件变量上的线程。
+    *   `pthread_cond_broadcast()`：唤醒所有等待在条件变量上的线程。
+
+Pthreads 是多线程编程的强大工具，但正确使用它需要深入理解并发编程的挑战，包括竞态条件、死锁、活锁等问题，这些通常在专门的同步章节（如第六章）中详细讨论。
+
+**代码示例**（计算1到N的和，使用`pthread_join`和`pthread_exit`，与之前示例类似，但强调API用法）：
 
 ```c
 #include <pthread.h>
 #include <stdio.h>
-#include <stdlib.h>
-int sum = 0; // 共享变量
+#include <stdlib.h> // for atoi
+
+// 共享变量，需要同步保护
+long long sum = 0;
+// pthread_mutex_t sum_mutex; // 假设有互斥锁来保护sum
+
 void *runner(void *param) {
-    int upper = atoi(param);
-    for (int i = 1; i <= upper; i++) sum += i;
-    pthread_exit(0);
+    int upper = atoi((char *)param);
+    for (int i = 1; i <= upper; i++) {
+        // pthread_mutex_lock(&sum_mutex); // 锁定互斥锁
+        sum += i;
+        // pthread_mutex_unlock(&sum_mutex); // 解锁互斥锁
+    }
+    printf("Thread finished, sum calculated up to %d.\n", upper);
+    pthread_exit(NULL); // 线程正常退出，返回NULL
 }
+
 int main(int argc, char *argv[]) {
-    pthread_t tid;
-    pthread_attr_t attr;
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <upper_limit>\n", argv[0]);
+        return 1;
+    }
+
+    pthread_t tid; // 线程ID
+    pthread_attr_t attr; // 线程属性
+
+    // 初始化线程属性为默认值
     pthread_attr_init(&attr);
-    pthread_create(&tid, &attr, runner, argv[1]);
-    pthread_join(tid, NULL);
-    printf("Sum = %d\n", sum);
+
+    // （可选）设置线程为可join状态，这是默认行为
+    // pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+    // 创建线程，传递参数argv[1]
+    printf("Main thread is creating a new thread.\n");
+    if (pthread_create(&tid, &attr, runner, argv[1]) != 0) {
+        fprintf(stderr, "Error creating thread!\n");
+        return 1;
+    }
+
+    // 主线程等待新线程完成
+    printf("Main thread waiting for child thread (ID: %lu) to finish.\n", tid);
+    if (pthread_join(tid, NULL) != 0) { // 等待线程终止，不获取返回值
+        fprintf(stderr, "Error joining thread!\n");
+        return 1;
+    }
+    printf("Child thread (ID: %lu) has terminated.\n", tid);
+
+    // 销毁线程属性对象
+    pthread_attr_destroy(&attr);
+
+    // 如果sum是线程安全的，这里可以直接打印最终结果
+    printf("Final Sum = %lld\n", sum);
+
     return 0;
 }
 ```
@@ -440,27 +586,96 @@ ETHREAD (内核) --> KTHREAD (内核) --> TEB (用户)
 ```
 
 ### 4.5.2 Linux线程
-**术语**：Linux将线程和进程统称为“任务”（Task）。  
 
-**创建**：通过`clone()`系统调用。  
+Linux 操作系统在实现线程时采取了一种独特且灵活的方式。在 Linux 内核中，并没有严格区分传统的"进程"和"线程"概念，而是将它们统一抽象为"任务"（Task）。所有执行流（无论是进程还是线程）都是通过一个名为 `clone()` 的系统调用来创建的。
 
-**共享选项**（`clone()`标志）：
+#### Linux 的"任务"抽象
 
-- **CLONE_FS**：共享文件系统信息。
-- **CLONE_VM**：共享内存空间。
-- **CLONE_SIGHAND**：共享信号处理。
-- **CLONE_FILES**：共享打开文件。  
+-   **统一视图**：Linux 内核将所有可调度的实体（进程和线程）都称为"任务"。每个任务都有一个唯一的任务 ID（PID，尽管线程的 PID 通常被称为 LWPID，轻量级进程 ID）。
+-   **共享与独立**：`clone()` 系统调用的强大之处在于，它允许调用者通过一系列标志位来精确控制新创建的任务与父任务之间共享哪些资源，以及哪些资源是独立的。
 
-**代码示例**：
+#### `clone()` 系统调用
+
+-   **功能**：`clone()` 是 Linux 中创建新任务（进程或线程）的基础系统调用。它允许创建的新任务与调用任务共享（或复制）其地址空间、文件描述符、信号处理表等资源。
+-   **签名**：`int clone(int (*fn)(void *), void *child_stack, int flags, void *arg, ... /* pid_t *ptid, void *newtls, pid_t *ctid */ );`
+    *   `fn`：新任务要执行的函数。
+    *   `child_stack`：新任务的栈空间。因为父子任务可能共享地址空间，所以需要为子任务单独指定一个栈。
+    *   `flags`：最关键的参数，一组位掩码，用于控制资源共享和行为。
+    *   `arg`：传递给 `fn` 函数的参数。
+    *   后续参数（如 `ptid`, `newtls`, `ctid`）用于更高级的 PID 管理和线程局部存储。
+
+#### `clone()` 的共享选项（关键标志）
+
+通过不同的 `flags` 组合，`clone()` 可以实现不同的行为：
+
+-   **创建新进程（类似 `fork()`）**：当 `flags` 为0（或不指定任何共享标志）时，`clone()` 的行为类似于传统的 `fork()`。它会创建一个新的任务，并复制父任务的地址空间、文件描述符等，使得父子进程拥有独立的资源副本。
+
+-   **创建线程（类似 `pthread_create()`）**：当 `flags` 包含 `CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND` 等标志时，`clone()` 创建的任务会与父任务共享大量资源，这正是传统意义上"线程"的行为。
+    *   **`CLONE_VM`**：共享内存空间。这是区分进程和线程最关键的标志之一。如果设置，子任务与父任务共享同一个虚拟地址空间（包括文本段、数据段、堆和映射区）。
+    *   **`CLONE_FS`**：共享文件系统信息（如根目录、当前工作目录）。
+    *   **`CLONE_FILES`**：共享打开的文件描述符表。
+    *   **`CLONE_SIGHAND`**：共享信号处理程序表。如果设置，父子任务对信号的处理方式是相同的。
+    *   **`CLONE_THREAD`**：这个标志更为特殊，它不仅共享资源，还会使新任务与调用者位于同一个线程组（Thread Group）中。一个线程组内的所有线程共享同一个 PID（通常是组长的 PID），但每个线程有自己的 LWPID。
+
+#### 代码示例
+
+以下是一个使用 `clone()` 创建线程的简单示例，模拟了 Pthreads 的行为：
 
 ```c
-#include <sched.h>
-void *task(void *arg) { /* 线程任务 */ }
+#define _GNU_SOURCE // 启用CLONE_VM等GNU扩展标志
+#include <sched.h>    // for clone()
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>   // for getpid()
+
+// 线程要执行的函数
+int thread_function(void *arg) {
+    printf("Hello from the cloned thread!\n");
+    printf("Child PID (LWPID): %d, Parent PID: %d\n", getpid(), getppid());
+    sleep(1); // 模拟工作
+    return 0;
+}
+
 int main() {
-    char stack[4096];
-    clone(task, stack + 4096, CLONE_VM | CLONE_FILES, NULL);
+    const int STACK_SIZE = 4096; // 线程栈大小
+    char *child_stack = (char *)malloc(STACK_SIZE); // 为子线程分配栈空间
+
+    if (child_stack == NULL) {
+        perror("Failed to allocate stack");
+        return 1;
+    }
+
+    // 使用CLONE_VM等标志创建线程（共享内存空间、文件、信号处理）
+    // CLONE_SIGHAND: 共享信号处理表
+    // CLONE_VM: 共享地址空间
+    // CLONE_FILES: 共享文件描述符
+    // CLONE_FS: 共享文件系统信息
+    // CLONE_THREAD: 使其成为同一线程组的成员
+    // SIGCHLD: 子进程/线程终止时发送SIGCHLD信号给父进程
+    int flags = CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_THREAD | SIGCHLD;
+
+    printf("Main process (PID: %d) is about to clone a thread.\n", getpid());
+
+    pid_t tid = clone(thread_function, child_stack + STACK_SIZE, flags, NULL);
+    if (tid == -1) {
+        perror("clone failed");
+        free(child_stack);
+        return 1;
+    }
+
+    printf("Main process: Cloned thread with PID (LWPID): %d\n", tid);
+
+    // 等待子线程/任务终止（需要包含<sys/wait.h>）
+    // 注意：对于CLONE_THREAD创建的线程，其退出状态通常不会通过wait()返回给线程组内其他成员，
+    // 而是通过线程组领导者处理。这里为了演示，可以简单sleep等待。
+    sleep(2);
+
+    free(child_stack); // 释放分配的栈空间
+    printf("Main process exiting.\n");
     return 0;
 }
 ```
 
-Linux的`clone()`灵活性高，通过标志控制资源共享程度。无标志时等价于`fork()`，全标志时等价于线程创建。
+#### Linux 线程的灵活性总结
+
+Linux 的 `clone()` 系统调用提供了极大的灵活性，通过精确控制共享哪些资源，可以在"完全独立的进程"和"高度共享的线程"之间创建出各种中间形态的执行流。这种统一的"任务"模型简化了内核设计，但要求开发者在使用时对 `clone()` 的标志有清晰的理解。
