@@ -84,6 +84,6 @@ hero:
     icon="🔄" 
     title="编译原理" 
     details="Compiler Principles"
-    type="pending"
+    link="/compiler-principles/"
   />
 </SubjectCardContainer>
