@@ -79,11 +79,13 @@ hero:
     title="数据库原理" 
     details="Database Principles"
     link="/database-principles/"
+    type="progress"
   />
   <SubjectCard 
     icon="🔄" 
     title="编译原理" 
     details="Compiler Principles"
     link="/compiler-principles/"
+    type="progress"
   />
 </SubjectCardContainer>
