@@ -78,7 +78,7 @@ hero:
     icon="🗄️" 
     title="数据库原理" 
     details="Database Principles"
-    type="pending"
+    link="/database-principles/"
   />
   <SubjectCard 
     icon="🔄" 

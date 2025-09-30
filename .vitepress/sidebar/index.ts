@@ -5,6 +5,7 @@ import dataStructures from './data-structures'
 import computerOrganization from './computer-organization'
 import operatingSystems from './operating-systems'
 import compilerPrinciples from './compiler-principles'
+import databasePrinciples from './database-principles'
 // import computerNetworks from './computer-networks'
 export default {
   '/linear-algebra/': linearAlgebra,
@@ -14,5 +15,6 @@ export default {
   '/computer-organization/': computerOrganization,
   '/operating-systems/': operatingSystems,
   '/compiler-principles/': compilerPrinciples,
+  '/database-principles/': databasePrinciples,
   // '/computer-networks/': computerNetworks
 } 
