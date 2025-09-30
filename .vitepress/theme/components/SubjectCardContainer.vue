@@ -1,5 +1,6 @@
 <script>
 export default {
+  name: 'SubjectCardContainer',
   props: {
     title: {
       type: String,

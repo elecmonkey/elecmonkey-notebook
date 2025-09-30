@@ -1,31 +1,6 @@
-<template>
-  <a class="subject-card" :href="link" v-if="link">
-    <article class="card-box">
-      <div class="card-icon" v-html="icon"></div>
-      <h2 class="card-title" v-html="title"></h2>
-      <p class="card-details" v-html="details"></p>
-      <p class="card-type" v-if="type">
-        <span v-if="type === 'progress'">&lt;In Progress&gt;</span>
-        <span v-else-if="type === 'pending'">&lt;Pending&gt;</span>
-      </p>
-    </article>
-  </a>
-  <div class="subject-card no-link" v-else>
-    <article class="card-box">
-      <div class="card-icon" v-html="icon"></div>
-      <h2 class="card-title" v-html="title"></h2>
-      <p class="card-details" v-html="details"></p>
-      <p class="card-type" v-if="type">
-        <span v-if="type === 'progress'">&lt;In Progress&gt;</span>
-        <span v-else-if="type === 'pending'">&lt;Pending&gt;</span>
-      </p>
-      <div class="gray-overlay"></div>
-    </article>
-  </div>
-</template>
-
 <script>
 export default {
+  name: 'SubjectCard',
   props: {
     icon: {
       type: String,
@@ -41,11 +16,13 @@ export default {
     },
     link: {
       type: String,
-      required: false
+      required: false,
+      default: ''
     },
     type: {
       type: String,
       required: false,
+      default: '',
       validator: (value) => {
         return !value || ['progress', 'pending'].includes(value);
       }
@@ -53,6 +30,40 @@ export default {
   }
 }
 </script>
+
+<template>
+  <a
+    v-if="link"
+    class="subject-card"
+    :href="link"
+  >
+    <article class="card-box">
+      <div class="card-icon" v-html="icon"></div>
+      <h2 class="card-title" v-html="title"></h2>
+      <p class="card-details" v-html="details"></p>
+      <p class="card-type" v-if="type">
+        <span v-if="type === 'progress'">&lt;In Progress&gt;</span>
+        <span v-else-if="type === 'pending'">&lt;Pending&gt;</span>
+      </p>
+      <div v-if="!link" class="gray-overlay"></div>
+    </article>
+  </a>
+  <div
+    v-else
+    class="subject-card no-link"
+  >
+    <article class="card-box">
+      <div class="card-icon" v-html="icon"></div>
+      <h2 class="card-title" v-html="title"></h2>
+      <p class="card-details" v-html="details"></p>
+      <p class="card-type" v-if="type">
+        <span v-if="type === 'progress'">&lt;In Progress&gt;</span>
+        <span v-else-if="type === 'pending'">&lt;Pending&gt;</span>
+      </p>
+      <div class="gray-overlay"></div>
+    </article>
+  </div>
+</template>
 
 <style scoped>
 .subject-card {
