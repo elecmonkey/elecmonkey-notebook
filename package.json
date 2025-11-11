@@ -11,7 +11,7 @@
   "keywords": [],
   "author": "",
   "license": "CC BY-NC-SA 4.0",
-  "packageManager": "pnpm@10.7.0",
+  "packageManager": "pnpm@10.21.0",
   "devDependencies": {
     "mermaid": "^11.12.0",
     "vitepress": "2.0.0-alpha.12",
