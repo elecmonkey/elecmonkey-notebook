@@ -11,7 +11,8 @@ export default defineConfig({
   description: "一个计算机笔记本。",
   srcDir: './docs',
   head: [
-    ['link', { rel: 'icon', href: '/favicon.svg' }]
+    ['link', { rel: 'icon', href: '/favicon.svg' }],
+    ['script', { defer: '', src: 'https://lh.elecmonkey.com/script.js', 'data-website-id': 'ec1d87a0-8889-475c-ac01-7c91b0c5744e' }]
   ],
   lastUpdated: true,
   themeConfig: {
