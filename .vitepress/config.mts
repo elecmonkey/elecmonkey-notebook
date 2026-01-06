@@ -21,6 +21,7 @@ export default defineConfig({
       { text: 'Home', link: '/' },
       { text: 'About', link: '/about/' },
       { text: 'Elecmonkey的小花园', link: 'https://www.elecmonkey.com' },
+      { text: 'Edev.uno', link: 'https://edev.uno' },
     ],
     search: {
       provider: 'local'
