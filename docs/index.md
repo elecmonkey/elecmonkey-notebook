@@ -78,8 +78,7 @@ hero:
     icon="🗄️" 
     title="数据库原理" 
     details="Database Principles"
-    link="/database-principles/"
-    type="progress"
+    link="https://notes.river177.com/Database/"
   />
   <SubjectCard 
     icon="🔄" 

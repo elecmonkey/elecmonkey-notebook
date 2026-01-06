@@ -1,6 +1,11 @@
 <script>
+import LineMdExternalLink from './LineMdExternalLink.vue'
+
 export default {
   name: 'SubjectCard',
+  components: {
+    LineMdExternalLink
+  },
   props: {
     icon: {
       type: String,
@@ -27,6 +32,11 @@ export default {
         return !value || ['progress', 'pending'].includes(value);
       }
     }
+  },
+  computed: {
+    isExternal() {
+      return this.link && (this.link.startsWith('http://') || this.link.startsWith('https://'));
+    }
   }
 }
 </script>
@@ -36,10 +46,15 @@ export default {
     v-if="link"
     class="subject-card"
     :href="link"
+    :target="isExternal ? '_blank' : undefined"
+    :rel="isExternal ? 'noopener noreferrer' : undefined"
   >
     <article class="card-box">
       <div class="card-icon" v-html="icon"></div>
-      <h2 class="card-title" v-html="title"></h2>
+      <h2 class="card-title">
+        <span v-html="title"></span>
+        <LineMdExternalLink v-if="isExternal" />
+      </h2>
       <p class="card-details" v-html="details"></p>
       <p class="card-type" v-if="type">
         <span v-if="type === 'progress'">&lt;In Progress&gt;</span>
@@ -146,6 +161,9 @@ div.subject-card:hover {
 }
 
 .card-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   line-height: 1.4;
   font-size: 16px;
   font-weight: 600;
