@@ -18,12 +18,12 @@ jobs:
       - name: 设置 pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 10
+          version: 10.27.0
       
       - name: 设置 Node.js 环境
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
       
       - name: 安装依赖
