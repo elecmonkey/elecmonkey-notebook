@@ -85,6 +85,5 @@ hero:
     title="编译原理" 
     details="Compiler Principles"
     link="/compiler-principles/"
-    type="progress"
   />
 </SubjectCardContainer>
