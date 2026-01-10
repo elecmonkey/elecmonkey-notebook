@@ -5,8 +5,7 @@ import dataStructures from './data-structures'
 import computerOrganization from './computer-organization'
 import operatingSystems from './operating-systems'
 import compilerPrinciples from './compiler-principles'
-// import databasePrinciples from './database-principles'
-// import computerNetworks from './computer-networks'
+import computerNetworking from './computer-networking'
 export default {
   '/linear-algebra/': linearAlgebra,
   '/probability-and-statistics/': probabilityAndStatistics,
@@ -15,6 +14,5 @@ export default {
   '/computer-organization/': computerOrganization,
   '/operating-systems/': operatingSystems,
   '/compiler-principles/': compilerPrinciples,
-  // '/database-principles/': databasePrinciples,
-  // '/computer-networks/': computerNetworks
+  '/computer-networking/': computerNetworking
 } 

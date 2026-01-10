@@ -63,7 +63,8 @@ hero:
     icon="🌐" 
     title="计算机网络" 
     details="Computer Networking"
-    type="pending"
+    link="/computer-networking/"
+    type="progress"
   />
 </SubjectCardContainer>
 
