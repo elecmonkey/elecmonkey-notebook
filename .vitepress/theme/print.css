@@ -1,0 +1,67 @@
+@media print {
+  /* 隐藏不需要的元素 */
+  .VPNav,
+  .VPSidebar,
+  .VPFooter,
+  .VPLocalNav,
+  .VPDocOutlineDropdown,
+  .VPDocFooter, 
+  .edit-link-button,
+  .pager,
+  .aside,
+  .vue-school-banner, /* 如果有的话 */
+  .print-buttons, /* 再次确保按钮隐藏 */
+  .VPDocAside {
+    display: none !important;
+  }
+
+  /* 调整布局 */
+  .VPContent {
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .VPDoc {
+    padding: 0 !important;
+  }
+
+  .container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .content-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* 调整正文样式 */
+  body {
+    overflow: auto !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* 链接显示 URL (可选，根据需求，这里暂不开启，以免太乱) */
+  /* a::after {
+    content: " (" attr(href) ")";
+  } */
+
+  /* 避免代码块被截断 */
+  pre, code {
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+    border: 1px solid #ccc;
+  }
+
+  /* 强制分页控制 */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+
+  img {
+    max-width: 100% !important;
+  }
+}
