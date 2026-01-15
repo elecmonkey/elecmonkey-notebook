@@ -109,6 +109,12 @@ a = t2
 />
 
 <VisualizationLink 
+  title="实验：DAG 与基本块优化" 
+  desc="公共子表达式消除、死代码消除与常量折叠" 
+  href="/compiler-principles/visualization/dag-optimizer" 
+/>
+
+<VisualizationLink 
   title="实验：回填技术 (Backpatching)" 
   desc="布尔表达式翻译中的回填演示" 
   href="/compiler-principles/visualization/backpatching" 
