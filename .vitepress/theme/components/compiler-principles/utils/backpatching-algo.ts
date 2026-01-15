@@ -48,7 +48,7 @@ function merge(l1: number[], l2: number[]): number[] {
   return Array.from(new Set([...l1, ...l2])).sort((a, b) => a - b);
 }
 
-function backpatch(list: number[], target: number) {
+function backpatch(list: number[], target: number | string) {
   // 生成一个 backpatch 动作步骤
   // 注意：这里我们不直接修改 instructions，而是生成一个闭包 action
   // 但为了生成 step 描述，我们需要知道 list 里的内容
@@ -261,7 +261,7 @@ export function simulateBackpatching(expression: string) {
     // backpatch(E.true, S.begin)
     // E.false -> next stmt
     
-    const trueTarget = nextQuad;
+    const trueTarget = `${nextQuad} (近端true)`;
     backpatch(root.trueList, trueTarget);
     
     // Simulate S body
@@ -275,7 +275,7 @@ export function simulateBackpatching(expression: string) {
     // False target
     // backpatch(root.false, nextQuad + 1) ? 
     // 通常 E.false 跳出 if
-    const falseTarget = nextQuad + 100; // 假设很远
+    const falseTarget = '远端false'; // 明确标识为外部/未知出口
     backpatch(root.falseList, falseTarget);
     
     steps.push({
