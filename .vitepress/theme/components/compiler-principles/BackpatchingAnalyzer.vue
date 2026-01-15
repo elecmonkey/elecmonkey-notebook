@@ -275,11 +275,6 @@ input:focus {
   outline: none;
 }
 
-input.error-input {
-  /* When error, maybe show text? No, overlay still works */
-  /* border-color handled by wrapper */
-}
-
 .error-badge {
   color: var(--vp-c-red-1);
   font-weight: bold;
