@@ -376,6 +376,12 @@ r1 --ε--> f
 
 **结论**：该 NFA 识别的就是 `a(b|c)*`。
 
+<VisualizationLink 
+  title="实验：正则表达式转 NFA" 
+  desc="交互式演示 Thompson 构造法" 
+  href="/compiler-principles/visualization/regex-to-nfa" 
+/>
+
 ### 2.6.2 NFA → DFA（子集构造法）
 
 核心思想：  
@@ -423,7 +429,13 @@ r1 --ε--> f
 
 - `{0}`  
 - `{0,1}`  
-- `{0,2}`（包含 NFA 接受态 2 → DFA 接受态）  
+- `{0,2}`（包含 NFA 接受态 2 → DFA 接受态）
+
+<VisualizationLink 
+  title="实验：NFA 转 DFA" 
+  desc="交互式演示子集构造法" 
+  href="/compiler-principles/visualization/nfa-to-dfa" 
+/>
 
 ### 2.6.3 DFA 最小化（Minimization）
 
@@ -493,7 +505,13 @@ D --0--> C   D --1--> D
 
 - 先分接受/非接受  
 - 再看“同组内的转移落点”是否一致  
-- 不一致就拆，直到稳定  
+- 不一致就拆，直到稳定
+
+<VisualizationLink 
+  title="实验：DFA 最小化" 
+  desc="交互式演示 Hopcroft 算法" 
+  href="/compiler-principles/visualization/dfa-minimizer" 
+/>
 
 ### 2.6.4 贯通例题：正规式 → NFA → DFA → 最小化
 
@@ -719,21 +737,12 @@ flowchart LR
 - 报错 + 跳过非法字符
 - 或返回 `ERROR` token 交给语法分析器处理
 
-## 可视化：Thompson 构造法 (Regex to NFA)
+## 可视化实验
 
-输入正则表达式（支持 `|`, `*`, `()`)，自动生成对应的 NFA。
+本章包含以下交互式实验组件，点击下方链接即可体验：
 
-<RegexToNfa />
-
-## 可视化：子集构造法 (NFA to DFA)
-
-输入正则表达式，先生成 NFA（Thompson 算法），再自动转换为 DFA（子集构造法）。
-
-<NfaToDfa />
-
-## 可视化：DFA 最小化 (DFA Minimization)
-
-输入正则表达式，先生成 DFA，然后使用**Hopcroft 算法 (划分等价类)** 自动进行最小化。
-表格展示了每一次划分的过程。
-
-<DfaMinimizer />
+<VisualizationLink 
+  title="词法分析可视化实验" 
+  desc="包含：Regex转NFA、NFA转DFA、DFA最小化" 
+  href="/compiler-principles/visualization/regex-to-nfa" 
+/>

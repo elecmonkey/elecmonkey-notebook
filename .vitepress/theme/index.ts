@@ -7,6 +7,7 @@ import './print.css'
 import SubjectCard from './components/SubjectCard.vue'
 import SubjectCardContainer from './components/SubjectCardContainer.vue'
 import PrintButtons from './components/PrintButtons.vue'
+import VisualizationLink from './components/VisualizationLink.vue'
 
 // 异步加载编译原理相关组件，避免污染主包和非相关页面
 const RegexToNfa = defineAsyncComponent(() => import('./components/compiler-principles/RegexToNfa.vue'))
@@ -35,5 +36,6 @@ export default {
     app.component('GrammarTransformer', GrammarTransformer)
     app.component('DfaMinimizer', DfaMinimizer)
     app.component('LR1Analyzer', LR1Analyzer)
+    app.component('VisualizationLink', VisualizationLink)
   }
 }

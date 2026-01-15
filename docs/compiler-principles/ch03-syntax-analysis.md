@@ -119,6 +119,12 @@ A' → β1 | β2
 - 若 `A → αBβ`，则 FIRST(β)\{ε} ⊆ FOLLOW(B)
 - 若 `A → αB` 或 `A → αBβ` 且 β ⇒* ε，则 FOLLOW(A) ⊆ FOLLOW(B)
 
+<VisualizationLink 
+  title="实验：FIRST & FOLLOW 集合" 
+  desc="自动计算文法的 FIRST/FOLLOW 集" 
+  href="/compiler-principles/visualization/first-follow" 
+/>
+
 ### 3.3.6 LL(1) 预测分析表
 
 **LL(1)**：
@@ -186,6 +192,18 @@ F  → ( E ) | id
 4. `T` 中遇到 `id * id`，`T'` 选择 `* F T'`  
 
 > 关键点：**每一步都由当前输入符号唯一决定产生式**。
+
+<VisualizationLink 
+  title="实验：LL(1) 预测分析表" 
+  desc="构造分析表并检测冲突" 
+  href="/compiler-principles/visualization/ll1-analyzer" 
+/>
+
+<VisualizationLink 
+  title="实验：文法变换" 
+  desc="消除左递归 / 提取左公因子" 
+  href="/compiler-principles/visualization/grammar-transformer" 
+/>
 
 
 ## 3.4 自底向上分析（Bottom-Up Parsing）
@@ -263,6 +281,12 @@ A → α · β
 
 > LR(1) 通过展望符减少错误归约，是“最强”的 LR 方法。
 
+<VisualizationLink 
+  title="实验：LR(1) 分析表" 
+  desc="生成 LR(1) 项目集族和分析表" 
+  href="/compiler-principles/visualization/lr1-analyzer" 
+/>
+
 ### 3.4.5 LR(0) / SLR / LR(1) / LALR
 
 | 方法 | 特点 | 优缺点 |
@@ -312,35 +336,3 @@ A → α · β
 3. **自顶向下**：LL(1)、FIRST/FOLLOW、预测分析表
 4. **自底向上**：移进-归约、LR 项目、LR 系列
 5. **错误处理**：同步点与恢复策略
-
-## 可视化：自动计算 FIRST 和 FOLLOW 集
-
-输入文法，自动计算所有非终结符的 FIRST 和 FOLLOW 集合。
-
-<FirstFollow />
-
-## 可视化：LL(1) 预测分析表生成器
-
-输入文法，自动完成以下步骤：
-1. 计算 FIRST / FOLLOW 集合
-2. 构造预测分析表
-3. 检测冲突并判断是否为 LL(1) 文法
-
-<LL1Analyzer />
-
-## 可视化：文法变换器 (消除左递归/提取左公因子)
-
-输入文法，自动尝试以下变换，并检查变换前后是否满足 LL(1) 条件：
-1. **消除左递归** (Direct & Indirect)
-2. **提取左公因子** (Left Factoring)
-
-<GrammarTransformer />
-
-## 可视化：LR(1) 分析表生成器
-
-输入文法，自动完成以下步骤：
-1. 构造 LR(1) 项目集族 (Canonical Collection)
-2. 生成 LR(1) 分析表 (ACTION / GOTO)
-3. 识别 Shift/Reduce 和 Reduce/Reduce 冲突
-
-<LR1Analyzer />

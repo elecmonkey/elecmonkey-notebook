@@ -10,5 +10,17 @@ export default [
       { text: '第五章：中间表示生成', link: '/compiler-principles/ch05-intermediate-representation' },
       { text: '第六章：运行时环境', link: '/compiler-principles/ch06-runtime-environment' },
     ]
+  },
+  {
+    text: '可视化实验',
+    items: [
+      { text: '正则表达式转 NFA', link: '/compiler-principles/visualization/regex-to-nfa' },
+      { text: 'NFA 转 DFA', link: '/compiler-principles/visualization/nfa-to-dfa' },
+      { text: 'DFA 最小化', link: '/compiler-principles/visualization/dfa-minimizer' },
+      { text: 'FIRST & FOLLOW 集合', link: '/compiler-principles/visualization/first-follow' },
+      { text: '文法变换', link: '/compiler-principles/visualization/grammar-transformer' },
+      { text: 'LL(1) 预测分析表', link: '/compiler-principles/visualization/ll1-analyzer' },
+      { text: 'LR(1) 分析表', link: '/compiler-principles/visualization/lr1-analyzer' },
+    ]
   }
 ] 
