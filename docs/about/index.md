@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: 关于
+pageClass: no-print-button
 ---
 
 # 关于 EM Notebook
