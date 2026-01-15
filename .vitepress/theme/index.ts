@@ -9,6 +9,7 @@ import SubjectCardContainer from './components/SubjectCardContainer.vue'
 import PrintButtons from './components/PrintButtons.vue'
 import RegexToNfa from './components/compiler-principles/RegexToNfa.vue'
 import FirstFollow from './components/compiler-principles/FirstFollow.vue'
+import NfaToDfa from './components/compiler-principles/NfaToDfa.vue'
 
 export default {
   extends: Theme,
@@ -23,5 +24,6 @@ export default {
     app.component('SubjectCardContainer', SubjectCardContainer)
     app.component('RegexToNfa', RegexToNfa)
     app.component('FirstFollow', FirstFollow)
+    app.component('NfaToDfa', NfaToDfa)
   }
 }

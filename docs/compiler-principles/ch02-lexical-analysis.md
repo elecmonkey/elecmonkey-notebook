@@ -724,3 +724,9 @@ flowchart LR
 输入正则表达式（支持 `|`, `*`, `()`)，自动生成对应的 NFA。
 
 <RegexToNfa />
+
+## 可视化：子集构造法 (NFA to DFA)
+
+输入正则表达式，先生成 NFA（Thompson 算法），再自动转换为 DFA（子集构造法）。
+
+<NfaToDfa />
