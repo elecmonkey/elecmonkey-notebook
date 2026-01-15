@@ -26,6 +26,7 @@ export default [
       { text: '中间代码生成 (TAC)', link: '/compiler-principles/visualization/tac-generation' },
       { text: '控制流分析 (CFG)', link: '/compiler-principles/visualization/control-flow-analysis' },
       { text: '回填技术 (Backpatching)', link: '/compiler-principles/visualization/backpatching' },
+      { text: 'DAG 与基本块优化', link: '/compiler-principles/visualization/dag-optimizer' },
     ]
   }
 ] 

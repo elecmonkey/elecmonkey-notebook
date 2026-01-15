@@ -22,6 +22,7 @@ const ActivationRecord = defineAsyncComponent(() => import('./components/compile
 const ControlFlowAnalyzer = defineAsyncComponent(() => import('./components/compiler-principles/ControlFlowAnalyzer.vue'))
 const TACGenerator = defineAsyncComponent(() => import('./components/compiler-principles/TACGenerator.vue'))
 const BackpatchingAnalyzer = defineAsyncComponent(() => import('./components/compiler-principles/BackpatchingAnalyzer.vue'))
+const DAGOptimizer = defineAsyncComponent(() => import('./components/compiler-principles/DAGOptimizer.vue'))
 
 export default {
   extends: Theme,
@@ -46,6 +47,7 @@ export default {
     app.component('ControlFlowAnalyzer', ControlFlowAnalyzer)
     app.component('TACGenerator', TACGenerator)
     app.component('BackpatchingAnalyzer', BackpatchingAnalyzer)
+    app.component('DAGOptimizer', DAGOptimizer)
     app.component('VisualizationLink', VisualizationLink)
   }
 }

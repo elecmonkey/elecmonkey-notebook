@@ -43,6 +43,31 @@
 - 栈式存储分配
 - 动态存储管理
 
+## 可视化实验平台
+
+本笔记提供了一系列交互式可视化工具，帮助理解抽象的编译算法：
+
+### 词法分析 (Lexical Analysis)
+- [正则表达式转 NFA (Thompson算法)](./visualization/regex-to-nfa)
+- [NFA 转 DFA (子集构造法)](./visualization/nfa-to-dfa)
+- [DFA 最小化 (Hopcroft算法)](./visualization/dfa-minimizer)
+
+### 语法分析 (Syntax Analysis)
+- [FIRST & FOLLOW 集合计算](./visualization/first-follow)
+- [文法转换 (消左递归/提左公因子)](./visualization/grammar-transformer)
+- [LL(1) 分析表构造](./visualization/ll1-analyzer)
+- [LR(1) 分析表构造](./visualization/lr1-analyzer)
+
+### 语义分析与中间代码 (Semantics & IR)
+- [语法制导翻译 (SDD/SDT)](./visualization/sdd-analyzer)
+- [中间代码生成 (TAC)](./visualization/tac-generation)
+- [DAG 与基本块优化](./visualization/dag-optimizer)
+- [控制流分析 (CFG)](./visualization/control-flow-analysis)
+- [回填技术 (Backpatching)](./visualization/backpatching)
+
+### 运行时环境 (Runtime)
+- [活动记录与栈式分配 (Activation Record)](./visualization/activation-record)
+
 ## 学习资源
 
 - **教材**: 《Compilers Principles, Techniques, & Tools》
