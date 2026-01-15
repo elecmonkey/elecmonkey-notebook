@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { VueFlow, MarkerType, Position, type Node, type Edge, type VueFlowStore } from '@vue-flow/core'
+import '@vue-flow/core/dist/style.css'
+import '@vue-flow/core/dist/theme-default.css'
 import { parseTAC, findLeaders, buildBasicBlocks, buildCFG, layoutCFG, type TACInstruction, type BasicBlock, type ControlFlowGraph } from './utils/cfg-algo'
 
 // 默认示例：阶乘的 TAC
@@ -24,6 +27,11 @@ const cfg = ref<ControlFlowGraph | null>(null)
 const layout = ref<Record<number, { x: number, y: number }>>({})
 const errorMsg = ref('')
 
+// Vue Flow Data
+const nodes = ref<Node[]>([])
+const edges = ref<Edge[]>([])
+let flowInstance: VueFlowStore | null = null
+
 // 视图控制
 const showLeaders = ref(false)
 const showBlocks = ref(false)
@@ -44,6 +52,45 @@ function analyze() {
     blocks.value = buildBasicBlocks(instructions.value, leaders.value)
     cfg.value = buildCFG(blocks.value)
     layout.value = layoutCFG(cfg.value)
+
+    // 更新节点
+    nodes.value = blocks.value.map(block => ({
+      id: block.id.toString(),
+      type: 'custom',
+      position: layout.value[block.id] || { x: 0, y: 0 },
+      data: {
+        blockId: block.id,
+        instructions: block.instructions,
+        isLoop: isInLoop(block.id)
+      },
+    }))
+
+    // 更新边
+    if (cfg.value) {
+      edges.value = cfg.value.edges.map((edge, i) => ({
+        id: `e${edge.from}-${edge.to}-${i}`,
+        source: edge.from.toString(),
+        target: edge.to.toString(),
+        type: 'default',
+        animated: edge.type === 'back',
+        style: { 
+          stroke: edge.type === 'back' ? 'red' : '#999',
+          strokeWidth: 2
+        },
+        markerEnd: MarkerType.ArrowClosed,
+        label: edge.type === 'back' ? 'Back' : undefined,
+        labelStyle: { fill: 'red', fontWeight: 700 },
+        labelBgStyle: { fill: 'rgba(255, 255, 255, 0.7)' },
+      }))
+    } else {
+      edges.value = []
+    }
+    
+    // 如果已初始化，尝试适应视图
+    if (showCFG.value && flowInstance) {
+       setTimeout(() => flowInstance?.fitView(), 50)
+    }
+
   } catch (e: any) {
     errorMsg.value = e.message
   }
@@ -62,49 +109,25 @@ onMounted(() => {
   analyze()
 })
 
-// 辅助：获取 SVG 连线路径
-function getPath(fromId: number, toId: number, type: 'normal' | 'back') {
-  const p1 = layout.value[fromId]
-  const p2 = layout.value[toId]
-  if (!p1 || !p2) return ''
-
-  // 简单的贝塞尔曲线
-  // 块高约 100，宽 180
-  const w = 180
-  const h = 100 // 估算内容高度
-  
-  // 出发点：底部中心
-  const x1 = p1.x
-  const y1 = p1.y + h/2 + 20 
-
-  // 目标点：顶部中心
-  const x2 = p2.x
-  const y2 = p2.y - h/2 - 20
-
-  if (type === 'back') {
-    // 回边：从左侧绕回去
-    const cp1x = x1 - 150
-    const cp1y = y1
-    const cp2x = x2 - 150
-    const cp2y = y2
-    return `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`
-  } else {
-    // 普通边
-    const cpy = (y1 + y2) / 2
-    return `M ${x1} ${y1} C ${x1} ${cpy}, ${x2} ${cpy}, ${x2} ${y2}`
-  }
-}
-
 // 检查是否在循环中
 function isInLoop(blockId: number): boolean {
   if (!cfg.value) return false
   return cfg.value.loops.some(loop => loop.nodes.includes(blockId))
 }
 
-// 检查是否是回边
-function isBackEdge(from: number, to: number): boolean {
-  return cfg.value?.edges.some(e => e.from === from && e.to === to && e.type === 'back') || false
+function onPaneReady(instance: VueFlowStore) {
+  flowInstance = instance
+  instance.fitView()
 }
+
+// 每次生成新的图时，自动适应视图
+watch(showCFG, (val) => {
+  if (val && flowInstance) {
+    setTimeout(() => {
+      flowInstance?.fitView()
+    }, 100)
+  }
+})
 </script>
 
 <template>
@@ -140,61 +163,34 @@ function isBackEdge(from: number, to: number): boolean {
         </div>
       </div>
 
-      <!-- 图模式：展示 CFG -->
+      <!-- 图模式：展示 CFG (Vue Flow) -->
       <div v-else class="cfg-canvas">
-        <svg width="100%" height="600" viewBox="0 0 800 600">
-          <defs>
-            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
-            </marker>
-            <marker id="arrowhead-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="red" />
-            </marker>
-          </defs>
-
-          <g transform="translate(0, 20)">
-            <!-- 连线 -->
-            <path 
-              v-for="(edge, i) in cfg?.edges" 
-              :key="'edge-'+i"
-              :d="getPath(edge.from, edge.to, edge.type)"
-              fill="none"
-              :stroke="edge.type === 'back' ? 'red' : '#999'"
-              stroke-width="2"
-              :marker-end="edge.type === 'back' ? 'url(#arrowhead-red)' : 'url(#arrowhead)'"
-              :stroke-dasharray="edge.type === 'back' ? '5,5' : '0'"
-            />
-
-            <!-- 节点 -->
-            <g 
-              v-for="block in blocks" 
-              :key="block.id"
-              :transform="`translate(${layout[block.id]?.x || 0}, ${layout[block.id]?.y || 0})`"
-            >
-              <!-- 块背景 -->
-              <rect 
-                x="-90" y="-50" width="180" height="100" 
-                rx="8" ry="8"
-                class="block-rect"
-                :class="{ 'in-loop': isInLoop(block.id) }"
-              />
-              
-              <!-- 标题 -->
-              <text x="0" y="-30" text-anchor="middle" font-weight="bold" fill="#333">
-                Block B{{ block.id }}
-              </text>
-              
-              <!-- 内容 -->
-              <foreignObject x="-80" y="-20" width="160" height="60">
-                <div class="block-content">
-                  <div v-for="inst in block.instructions" :key="inst.id" class="mini-code">
+        <ClientOnly>
+          <VueFlow 
+            v-model:nodes="nodes" 
+            v-model:edges="edges" 
+            :default-viewport="{ zoom: 1 }"
+            :min-zoom="0.1"
+            :max-zoom="4"
+            fit-view-on-init
+            style="height: 100%; width: 100%;"
+            @pane-ready="onPaneReady"
+          >
+            <template #node-custom="{ data }">
+              <div class="custom-node" :class="{ 'in-loop': data.isLoop }">
+                <div class="node-header">Block B{{ data.blockId }}</div>
+                <div class="node-content">
+                  <div v-for="inst in data.instructions" :key="inst.id" class="mini-code">
                     {{ inst.id }}: {{ inst.original.replace(/^\(\d+\)\s*/, '') }}
                   </div>
                 </div>
-              </foreignObject>
-            </g>
-          </g>
-        </svg>
+              </div>
+            </template>
+            <template #edge-custom="props">
+               <!-- custom edge if needed, but currently using default/smoothstep with styles -->
+            </template>
+          </VueFlow>
+        </ClientOnly>
         
         <div class="legend">
           <div class="item"><span class="swatch normal"></span> 普通块</div>
@@ -208,16 +204,16 @@ function isBackEdge(from: number, to: number): boolean {
 
 <style scoped>
 .cfg-analyzer {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
-  height: 600px;
+  height: auto;
+  min-height: 800px;
 }
 
 @media (max-width: 960px) {
   .cfg-analyzer {
-    grid-template-columns: 1fr;
-    height: auto;
+    min-height: auto;
   }
 }
 
@@ -230,19 +226,29 @@ function isBackEdge(from: number, to: number): boolean {
   flex-direction: column;
 }
 
+.input-panel {
+  flex: 0 0 auto;
+}
+
+.vis-panel {
+  flex: 1;
+  min-height: 500px;
+}
+
 h3 {
   margin: 0 0 12px 0;
   font-size: 1.1em;
 }
 
 textarea {
-  flex: 1;
+  width: 100%;
+  height: 150px;
   background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-divider);
   border-radius: 4px;
   padding: 8px;
   font-family: monospace;
-  resize: none;
+  resize: vertical;
   font-size: 13px;
   line-height: 1.5;
 }
@@ -274,7 +280,7 @@ button.active {
   background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-divider);
   border-radius: 4px;
-  padding: 12px;
+  padding: 12px 12px 12px 50px;
   overflow-y: auto;
   flex: 1;
   font-family: monospace;
@@ -296,12 +302,15 @@ button.active {
 
 .leader-mark {
   position: absolute;
-  left: -40px;
+  left: -44px;
+  width: 40px;
+  text-align: center;
   background: var(--vp-c-yellow-1);
   color: #000;
   font-size: 10px;
-  padding: 2px 4px;
+  padding: 2px 0;
   border-radius: 2px;
+  z-index: 1;
 }
 
 .line-no {
@@ -309,42 +318,58 @@ button.active {
   margin-right: 12px;
   width: 30px;
   text-align: right;
+  flex-shrink: 0;
 }
 
 /* CFG Canvas */
 .cfg-canvas {
-  background: #fff; /* 始终白色底以便看图 */
+  background: #fff;
   border: 1px solid var(--vp-c-divider);
   border-radius: 4px;
-  overflow: hidden; /* SVG pan/zoom later? */
-  position: relative;
-  flex: 1;
-}
-
-.block-rect {
-  fill: #fff;
-  stroke: #333;
-  stroke-width: 2px;
-  filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
-}
-
-.block-rect.in-loop {
-  fill: #fef9c3; /* 淡黄色 */
-  stroke: #eab308;
-}
-
-.block-content {
-  font-size: 11px;
-  font-family: monospace;
-  color: #333;
   overflow: hidden;
-  height: 100%;
+  position: relative;
+  height: 600px;
+  display: block;
+}
+
+/* Custom Node Styles */
+.custom-node {
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 0;
+  min-width: 180px;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  font-family: monospace;
+  overflow: hidden;
+}
+
+.custom-node.in-loop {
+  background: #fef9c3;
+  border-color: #eab308;
+}
+
+.node-header {
+  background: #f0f0f0;
+  padding: 4px 8px;
+  border-bottom: 1px solid #ddd;
+  font-weight: bold;
+  text-align: center;
+  font-size: 12px;
+}
+
+.custom-node.in-loop .node-header {
+  background: #fde047; /* brighter yellow header for loop */
+  border-bottom-color: #eab308;
+}
+
+.node-content {
+  padding: 8px;
+  font-size: 11px;
 }
 
 .mini-code {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .legend {
@@ -357,6 +382,7 @@ button.active {
   border-radius: 4px;
   font-size: 12px;
   color: #333;
+  z-index: 10;
 }
 
 .item {
