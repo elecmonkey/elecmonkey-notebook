@@ -96,6 +96,10 @@ function infixToPostfix(regex: string): string {
       while (stack.length > 0 && stack[stack.length - 1] !== '(') {
         output += stack.pop();
       }
+      
+      if (stack.length === 0) {
+        throw new Error('Mismatched parentheses: too many closing parentheses');
+      }
       stack.pop(); // Pop '('
     } else {
       while (
@@ -110,7 +114,11 @@ function infixToPostfix(regex: string): string {
   }
   
   while (stack.length > 0) {
-    output += stack.pop();
+    const top = stack.pop();
+    if (top === '(') {
+      throw new Error('Mismatched parentheses: unclosed parenthesis');
+    }
+    output += top;
   }
   
   return output;
@@ -125,19 +133,17 @@ export function buildNFA(regex: string): NFAFragment | null {
 
   for (const char of postfix) {
     if (char === '.') {
-      if (stack.length < 2) return null; // Error
+      if (stack.length < 2) throw new Error('Invalid regex: missing operand for concatenation');
       const right = stack.pop()!;
       const left = stack.pop()!;
       
       // 连接: left.end -> right.start (epsilon)
-      // 为了简化，我们可以直接合并 left.end 和 right.start，或者加 epsilon
-      // Thompson 构造通常使用 epsilon 连接
       addTransition(left.end, right.start, 'ε');
       left.end.isAccepting = false;
       
       stack.push({ start: left.start, end: right.end });
     } else if (char === '|') {
-      if (stack.length < 2) return null; // Error
+      if (stack.length < 2) throw new Error('Invalid regex: missing operand for union (|)');
       const right = stack.pop()!;
       const left = stack.pop()!;
       
@@ -154,7 +160,7 @@ export function buildNFA(regex: string): NFAFragment | null {
       
       stack.push({ start: newStart, end: newEnd });
     } else if (char === '*') {
-      if (stack.length < 1) return null; // Error
+      if (stack.length < 1) throw new Error('Invalid regex: missing operand for closure (*)');
       const nfa = stack.pop()!;
       
       const newStart = createState();
@@ -177,7 +183,11 @@ export function buildNFA(regex: string): NFAFragment | null {
     }
   }
 
-  return stack.length > 0 ? stack[0] : null;
+  if (stack.length !== 1) {
+     throw new Error('Invalid regex: incomplete expression or multiple fragments');
+  }
+
+  return stack[0];
 }
 
 // 转换为 Mermaid 格式
