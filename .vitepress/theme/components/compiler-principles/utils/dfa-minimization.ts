@@ -181,3 +181,80 @@ export function minimizeDFA(startState: DFAState): MinimizedDFA {
     steps
   };
 }
+
+// 最小化 DFA 转 Graphviz DOT
+export function minDfaToDot(startState: DFAState, direction: 'LR' | 'TD' = 'LR'): string {
+  let dot = 'digraph MinDFA {\n';
+  dot += `  rankdir=${direction};\n`;
+  dot += '  graph [bgcolor="transparent", nodesep=0.5, ranksep=0.5, splines=spline];\n';
+  dot += '  node [fontname="Helvetica", fontsize=14, shape=circle, fixedsize=true, width=0.8, height=0.8, style="filled", fillcolor="white", color="#333", penwidth=1.5];\n';
+  dot += '  edge [fontname="Helvetica", fontsize=12, arrowsize=0.8];\n';
+
+  // 收集状态 (BFS)
+  const visited = new Set<number>();
+  const queue = [startState];
+  const states: DFAState[] = [];
+
+  visited.add(startState.id);
+  let head = 0;
+  while(head < queue.length){
+      const current = queue[head++];
+      states.push(current);
+      for(const target of current.transitions.values()){
+          if(!visited.has(target.id)){
+              visited.add(target.id);
+              queue.push(target);
+          }
+      }
+  }
+
+  // 节点
+  states.forEach(state => {
+    // 最小化后的 ID 通常是 0, 1, 2...
+    // 我们可以显示 "q0", "q1" 
+    let label = `q${state.id}`; 
+    let shape = 'circle';
+    let fillcolor = 'white';
+    let color = '#333';
+    
+    // 可选：显示它代表的 NFA 状态集
+    const nfaIds = Array.from(state.nfaStates).sort((a,b)=>a-b).join(',');
+    // label += `\\n{${nfaIds}}`; // 如果太长可能会爆
+
+    if (state.isStart) {
+        label = `start\\n${label}`;
+        fillcolor = '#e1f5fe';
+        color = '#01579b';
+    } else if (state.isAccepting) {
+        shape = 'doublecircle';
+        fillcolor = '#e8f5e9';
+        color = '#2e7d32';
+        if (state.isStart) {
+             label = `start/end\\n${label}`;
+        } else {
+             label = `end\\n${label}`;
+        }
+    }
+
+    dot += `  ${state.id} [label="${label}", shape=${shape}, fillcolor="${fillcolor}", color="${color}"];\n`;
+  });
+
+  // 边
+  states.forEach(state => {
+      const targetMap = new Map<number, string[]>();
+      state.transitions.forEach((target, symbol) => {
+          if (!targetMap.has(target.id)) {
+              targetMap.set(target.id, []);
+          }
+          targetMap.get(target.id)!.push(symbol);
+      });
+
+      targetMap.forEach((symbols, targetId) => {
+          const label = symbols.sort().join(',');
+          dot += `  ${state.id} -> ${targetId} [label="${label}"];\n`;
+      });
+  });
+
+  dot += '}\n';
+  return dot;
+}

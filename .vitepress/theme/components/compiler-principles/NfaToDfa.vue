@@ -1,33 +1,19 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import mermaid from 'mermaid'
-import { buildNFA, nfaToMermaid } from './utils/thompson'
-import { subsetConstruction, dfaToMermaid, ConstructionStep } from './utils/subset-construction'
+import { instance } from '@viz-js/viz'
+import { buildNFA, nfaToDot } from './utils/thompson'
+import { subsetConstruction, dfaToDot, ConstructionStep } from './utils/subset-construction'
 
 const regexInput = ref('(a|b)*abb')
 const direction = ref<'LR' | 'TD'>('LR')
-const nfaMermaidCode = ref('')
-const dfaMermaidCode = ref('')
 const constructionSteps = ref<ConstructionStep[]>([])
 const errorMsg = ref('')
 const nfaContainerRef = ref<HTMLElement | null>(null)
 const dfaContainerRef = ref<HTMLElement | null>(null)
 
-// Initialize mermaid
-onMounted(() => {
-  mermaid.initialize({ 
-    startOnLoad: false,
-    theme: 'default',
-    securityLevel: 'loose',
-  })
-  updateDiagram()
-})
-
 async function updateDiagram() {
   errorMsg.value = ''
   if (!regexInput.value) {
-    nfaMermaidCode.value = ''
-    dfaMermaidCode.value = ''
     constructionSteps.value = []
     if (nfaContainerRef.value) nfaContainerRef.value.innerHTML = ''
     if (dfaContainerRef.value) dfaContainerRef.value.innerHTML = ''
@@ -41,27 +27,27 @@ async function updateDiagram() {
       errorMsg.value = 'Invalid Regex or empty result'
       return
     }
-    const nfaCode = nfaToMermaid(nfa, direction.value)
-    nfaMermaidCode.value = nfaCode
+    const nfaDot = nfaToDot(nfa, direction.value)
     
     // 2. Build DFA (Subset Construction)
     const { startState, steps } = subsetConstruction(nfa)
-    const dfaCode = dfaToMermaid(startState, direction.value)
-    dfaMermaidCode.value = dfaCode
+    const dfaDot = dfaToDot(startState, direction.value)
     constructionSteps.value = steps
+
+    const viz = await instance()
 
     // Render NFA
     if (nfaContainerRef.value) {
-      const id = `mermaid-nfa-${Date.now()}`
-      const { svg } = await mermaid.render(id, nfaCode)
-      nfaContainerRef.value.innerHTML = svg
+      const svg = viz.renderSVGElement(nfaDot)
+      nfaContainerRef.value.innerHTML = ''
+      nfaContainerRef.value.appendChild(svg)
     }
 
     // Render DFA
     if (dfaContainerRef.value) {
-      const id = `mermaid-dfa-${Date.now()}`
-      const { svg } = await mermaid.render(id, dfaCode)
-      dfaContainerRef.value.innerHTML = svg
+      const svg = viz.renderSVGElement(dfaDot)
+      dfaContainerRef.value.innerHTML = ''
+      dfaContainerRef.value.appendChild(svg)
     }
 
   } catch (e: any) {
@@ -82,24 +68,31 @@ function toggleDirection() {
   direction.value = direction.value === 'LR' ? 'TD' : 'LR'
   updateDiagram()
 }
+
+onMounted(() => {
+  updateDiagram()
+})
 </script>
 
 <template>
   <div class="nfa-dfa-container">
     <div class="controls">
-      <div class="input-group">
-        <label>Regular Expression:</label>
-        <input 
-          v-model="regexInput" 
-          @input="onInput" 
-          type="text" 
-          placeholder="e.g. (a|b)*abb"
-        />
-      </div>
-      <div class="options">
+      <div class="input-row">
+        <div class="input-group">
+          <label>Regular Expression:</label>
+          <input 
+            v-model="regexInput" 
+            @input="onInput" 
+            type="text" 
+            placeholder="e.g. (a|b)*abb"
+          />
+        </div>
         <button class="toggle-btn" @click="toggleDirection">
           Direction: {{ direction === 'LR' ? 'Left to Right' : 'Top to Down' }}
         </button>
+      </div>
+      <div class="hint">
+        Supports: <code>( )</code>, <code>|</code> (union), <code>*</code> (closure), concatenation (implicit).
       </div>
     </div>
 
@@ -108,7 +101,7 @@ function toggleDirection() {
     <div class="diagrams-wrapper">
       <div class="diagram-box">
         <h4>Step 1: NFA (Thompson)</h4>
-        <div ref="nfaContainerRef" class="mermaid-render"></div>
+        <div ref="nfaContainerRef" class="viz-render"></div>
       </div>
 
       <div class="arrow">⬇️ Subset Construction ⬇️</div>
@@ -153,7 +146,7 @@ function toggleDirection() {
 
       <div class="diagram-box">
         <h4>Step 2: DFA</h4>
-        <div ref="dfaContainerRef" class="mermaid-render"></div>
+        <div ref="dfaContainerRef" class="viz-render"></div>
         <div class="legend">
           <small>* Labels like <code>{0,1,2}</code> indicate the set of NFA states merged into this DFA state.</small>
         </div>
@@ -175,15 +168,23 @@ function toggleDirection() {
   margin-bottom: 16px;
 }
 
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .input-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  flex: 1;
 }
 
 .input-group label {
   font-weight: bold;
+  white-space: nowrap;
 }
 
 .input-group input {
@@ -195,24 +196,43 @@ function toggleDirection() {
   color: var(--vp-c-text-1);
 }
 
-.options {
-  margin-bottom: 8px;
-}
-
 .toggle-btn {
-  padding: 4px 12px;
+  padding: 8px 12px;
   background-color: var(--vp-c-brand-soft);
   color: var(--vp-c-brand-1);
   border: 1px solid var(--vp-c-brand-1);
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9em;
+  white-space: nowrap;
+  height: 38px;
   transition: all 0.2s;
 }
 
 .toggle-btn:hover {
   background-color: var(--vp-c-brand-1);
   color: white;
+}
+
+.hint {
+  font-size: 0.9em;
+  color: var(--vp-c-text-2);
+}
+
+.diagram-section {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.diagram-container {
+  overflow-x: auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 4px;
+  min-height: 100px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .error {
@@ -318,5 +338,10 @@ function toggleDirection() {
   color: white;
   border-radius: 4px;
   margin-left: 4px;
+}
+.viz-render {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 </style>

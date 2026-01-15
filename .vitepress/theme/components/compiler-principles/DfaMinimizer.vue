@@ -1,34 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import mermaid from 'mermaid'
-import { buildNFA, nfaToMermaid } from './utils/thompson'
-import { subsetConstruction, dfaToMermaid } from './utils/subset-construction'
-import { minimizeDFA, MinimizedDFA } from './utils/dfa-minimization'
+import { instance } from '@viz-js/viz'
+import { buildNFA } from './utils/thompson'
+import { subsetConstruction, dfaToDot } from './utils/subset-construction'
+import { minimizeDFA, MinimizedDFA, minDfaToDot } from './utils/dfa-minimization'
 
 const regexInput = ref('(a|b)*abb')
 const direction = ref<'LR' | 'TD'>('LR')
-const initialDfaMermaid = ref('')
-const minDfaMermaid = ref('')
 const minResult = ref<MinimizedDFA | null>(null)
 const errorMsg = ref('')
 const initialContainerRef = ref<HTMLElement | null>(null)
 const minContainerRef = ref<HTMLElement | null>(null)
 
-// Initialize mermaid
-onMounted(() => {
-  mermaid.initialize({ 
-    startOnLoad: false,
-    theme: 'default',
-    securityLevel: 'loose',
-  })
-  updateDiagram()
-})
-
 async function updateDiagram() {
   errorMsg.value = ''
   if (!regexInput.value) {
-    initialDfaMermaid.value = ''
-    minDfaMermaid.value = ''
     minResult.value = null
     if (initialContainerRef.value) initialContainerRef.value.innerHTML = ''
     if (minContainerRef.value) minContainerRef.value.innerHTML = ''
@@ -44,28 +30,28 @@ async function updateDiagram() {
     }
     const { startState: dfaStart } = subsetConstruction(nfa)
     
-    const dfaCode = dfaToMermaid(dfaStart, direction.value)
-    initialDfaMermaid.value = dfaCode
+    const dfaDot = dfaToDot(dfaStart, direction.value)
 
     // 2. Minimize DFA
     const result = minimizeDFA(dfaStart)
     minResult.value = result
     
-    const minCode = dfaToMermaid(result.startState, direction.value)
-    minDfaMermaid.value = minCode
+    const minDot = minDfaToDot(result.startState, direction.value)
+
+    const viz = await instance()
 
     // Render Initial DFA
     if (initialContainerRef.value) {
-      const id = `mermaid-init-dfa-${Date.now()}`
-      const { svg } = await mermaid.render(id, dfaCode)
-      initialContainerRef.value.innerHTML = svg
+      const svg = viz.renderSVGElement(dfaDot)
+      initialContainerRef.value.innerHTML = ''
+      initialContainerRef.value.appendChild(svg)
     }
 
     // Render Minimized DFA
     if (minContainerRef.value) {
-      const id = `mermaid-min-dfa-${Date.now()}`
-      const { svg } = await mermaid.render(id, minCode)
-      minContainerRef.value.innerHTML = svg
+      const svg = viz.renderSVGElement(minDot)
+      minContainerRef.value.innerHTML = ''
+      minContainerRef.value.appendChild(svg)
     }
 
   } catch (e: any) {
@@ -86,41 +72,48 @@ function toggleDirection() {
   direction.value = direction.value === 'LR' ? 'TD' : 'LR'
   updateDiagram()
 }
+
+onMounted(() => {
+  updateDiagram()
+})
 </script>
 
 <template>
   <div class="dfa-min-container">
     <div class="controls">
-      <div class="input-group">
-        <label>Regular Expression:</label>
-        <input 
-          v-model="regexInput" 
-          @input="onInput" 
-          type="text" 
-          placeholder="e.g. (a|b)*abb"
-        />
-      </div>
-      <div class="options">
+      <div class="input-row">
+        <div class="input-group">
+          <label>Regular Expression:</label>
+          <input 
+            v-model="regexInput" 
+            @input="onInput" 
+            type="text" 
+            placeholder="e.g. (a|b)*abb"
+          />
+        </div>
         <button class="toggle-btn" @click="toggleDirection">
           Direction: {{ direction === 'LR' ? 'Left to Right' : 'Top to Down' }}
         </button>
+      </div>
+      <div class="hint">
+        Supports: <code>( )</code>, <code>|</code> (union), <code>*</code> (closure), concatenation (implicit).
       </div>
     </div>
 
     <div v-if="errorMsg" class="error">{{ errorMsg }}</div>
 
     <div class="content-wrapper" v-if="minResult">
-      <!-- 1. Initial DFA -->
-      <div class="panel">
-        <h4>1. Initial DFA</h4>
-        <div ref="initialContainerRef" class="mermaid-render"></div>
+      <div class="diagram-section">
+        <h3>1. Initial DFA (from NFA)</h3>
+        <div class="diagram-container">
+          <div ref="initialContainerRef" class="viz-render"></div>
+        </div>
       </div>
 
       <div class="arrow">⬇️ Minimization (Partition Refinement) ⬇️</div>
 
-      <!-- 2. Steps Table -->
-      <div class="steps-box">
-        <h4>2. Partition Steps</h4>
+      <div class="diagram-section">
+        <h3>2. Partition Refinement Steps</h3>
         <div class="table-container">
           <table class="steps-table">
             <thead>
@@ -149,12 +142,10 @@ function toggleDirection() {
 
       <div class="arrow">⬇️ Result ⬇️</div>
 
-      <!-- 3. Minimized DFA -->
-      <div class="panel">
-        <h4>3. Minimized DFA</h4>
-        <div ref="minContainerRef" class="mermaid-render"></div>
-        <div class="legend">
-          <small>New states are merged from equivalent original states.</small>
+      <div class="diagram-section">
+        <h3>3. Minimized DFA</h3>
+        <div class="diagram-container">
+          <div ref="minContainerRef" class="viz-render"></div>
         </div>
       </div>
     </div>
@@ -174,15 +165,23 @@ function toggleDirection() {
   margin-bottom: 16px;
 }
 
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .input-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  flex: 1;
 }
 
 .input-group label {
   font-weight: bold;
+  white-space: nowrap;
 }
 
 .input-group input {
@@ -195,13 +194,42 @@ function toggleDirection() {
 }
 
 .toggle-btn {
-  padding: 4px 12px;
+  padding: 8px 12px;
   background-color: var(--vp-c-brand-soft);
   color: var(--vp-c-brand-1);
   border: 1px solid var(--vp-c-brand-1);
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9em;
+  white-space: nowrap;
+  height: 38px;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+  background-color: var(--vp-c-brand-1);
+  color: white;
+}
+
+.hint {
+  font-size: 0.9em;
+  color: var(--vp-c-text-2);
+}
+
+.diagram-section {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.diagram-container {
+  overflow-x: auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 4px;
+  min-height: 100px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .error {
@@ -310,5 +338,10 @@ function toggleDirection() {
   text-align: center;
   margin-top: 8px;
   color: #666;
+}
+.viz-render {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 </style>

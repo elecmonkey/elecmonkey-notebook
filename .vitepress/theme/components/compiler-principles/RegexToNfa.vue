@@ -59,16 +59,16 @@ onMounted(() => {
 <template>
   <div class="regex-nfa-container">
     <div class="controls">
-      <div class="input-group">
-        <label>Regular Expression:</label>
-        <input 
-          v-model="regexInput" 
-          @input="onInput" 
-          type="text" 
-          placeholder="e.g. (a|b)*abb"
-        />
-      </div>
-      <div class="options">
+      <div class="input-row">
+        <div class="input-group">
+          <label>Regular Expression:</label>
+          <input 
+            v-model="regexInput" 
+            @input="onInput" 
+            type="text" 
+            placeholder="e.g. (a|b)*abb"
+          />
+        </div>
         <button class="toggle-btn" @click="toggleDirection">
           Direction: {{ direction === 'LR' ? 'Left to Right' : 'Top to Down' }}
         </button>
@@ -103,69 +103,71 @@ onMounted(() => {
   gap: 12px;
 }
 
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .input-group {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
+  flex: 1;
 }
 
 .input-group label {
-  font-weight: 600;
-  color: var(--vp-c-text-1);
+  font-weight: bold;
+  white-space: nowrap;
 }
 
 .input-group input {
-  padding: 8px 12px;
+  flex: 1;
+  padding: 8px;
   border: 1px solid var(--vp-c-divider);
   border-radius: 4px;
-  background: var(--vp-c-bg-soft);
+  background-color: var(--vp-c-bg);
   color: var(--vp-c-text-1);
-  font-family: monospace;
-  font-size: 16px;
-}
-
-.options {
-  display: flex;
-  gap: 12px;
 }
 
 .toggle-btn {
-  padding: 6px 12px;
-  background: var(--vp-c-brand-soft);
+  padding: 8px 12px;
+  background-color: var(--vp-c-brand-soft);
   color: var(--vp-c-brand-1);
   border: 1px solid var(--vp-c-brand-1);
   border-radius: 4px;
   cursor: pointer;
+  font-size: 0.9em;
+  white-space: nowrap;
+  height: 38px; /* Match input height */
   transition: all 0.2s;
 }
 
 .toggle-btn:hover {
-  background: var(--vp-c-brand-1);
+  background-color: var(--vp-c-brand-1);
   color: white;
 }
 
 .hint {
-  font-size: 12px;
-  color: var(--vp-c-text-3);
+  font-size: 0.9em;
+  color: var(--vp-c-text-2);
 }
 
 .error {
   color: var(--vp-c-danger-1);
-  background: var(--vp-c-danger-soft);
-  padding: 8px 12px;
-  border-radius: 4px;
+  margin-bottom: 8px;
 }
 
 .diagram-container {
-  margin-top: 16px;
-  overflow: auto;
-  border: 1px solid var(--vp-c-divider);
+  overflow-x: auto;
+  padding: 20px;
+  background-color: white; /* Mermaid default theme looks best on white */
   border-radius: 4px;
-  background: white; /* Graphviz output usually expects white background */
-  padding: 16px;
-  min-height: 200px;
+  min-height: 100px;
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 .viz-render {

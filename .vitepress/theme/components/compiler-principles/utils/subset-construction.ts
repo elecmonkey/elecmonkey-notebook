@@ -151,14 +151,13 @@ export function subsetConstruction(nfa: NFAFragment): ConstructionResult {
   return { startState: startDFAState, steps };
 }
 
-export function dfaToMermaid(startState: DFAState, direction: 'LR' | 'TD' = 'LR'): string {
-  let mermaid = `graph ${direction}\n`;
-  
-  // 样式定义
-  mermaid += '    %% Styles\n';
-  mermaid += '    classDef start fill:#e1f5fe,stroke:#01579b,stroke-width:2px;\n';
-  mermaid += '    classDef accept fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,stroke-dasharray: 5 5;\n';
-  mermaid += '    classDef normal fill:#fff,stroke:#333,stroke-width:1px;\n';
+// 转换为 Graphviz DOT 格式
+export function dfaToDot(startState: DFAState, direction: 'LR' | 'TD' = 'LR'): string {
+  let dot = 'digraph DFA {\n';
+  dot += `  rankdir=${direction};\n`;
+  dot += '  graph [bgcolor="transparent", nodesep=0.5, ranksep=0.5, splines=spline];\n';
+  dot += '  node [fontname="Helvetica", fontsize=14, shape=circle, fixedsize=true, width=0.8, height=0.8, style="filled", fillcolor="white", color="#333", penwidth=1.5];\n';
+  dot += '  edge [fontname="Helvetica", fontsize=12, arrowsize=0.8];\n';
 
   const visited = new Set<number>();
   const queue = [startState];
@@ -181,37 +180,76 @@ export function dfaToMermaid(startState: DFAState, direction: 'LR' | 'TD' = 'LR'
 
   // 节点
   states.forEach(state => {
-    let className = 'normal';
     let label = state.id.toString();
+    let shape = 'circle';
+    let fillcolor = 'white';
+    let color = '#333';
     
     // 显示包含的 NFA 状态，增强可视化效果
+    // 注意：Graphviz label 支持 HTML-like 标签，或者 \n 换行
     const nfaIds = Array.from(state.nfaStates).sort((a,b)=>a-b).join(',');
-
+    
     if (state.isStart) {
-        className = 'start';
-        label = `start\n{${nfaIds}}`;
+        label = `start\\n{${nfaIds}}`;
+        fillcolor = '#e1f5fe';
+        color = '#01579b';
     } else if (state.isAccepting) {
-        className = 'accept';
-        label = `end\n{${nfaIds}}`;
+        shape = 'doublecircle';
+        fillcolor = '#e8f5e9';
+        color = '#2e7d32';
+        if (state.isStart) { // start + accept
+             label = `start/end\\n{${nfaIds}}`;
+        } else {
+             label = `end\\n{${nfaIds}}`;
+        }
     } else {
-        label = `${state.id}\n{${nfaIds}}`;
+        label = `${state.id}\\n{${nfaIds}}`;
     }
 
-    // 替换 label 中的换行符以适应 Mermaid 字符串语法
-    // Mermaid 字符串中换行需要引号
+    // 动态调整节点大小和字体
+    // 基础大小 0.8，根据内容长度适当增加
+    // NFA集合可能会很长，如 {1,2,3,4,5,6,7,8,9,10}
+    // 粗略估算字符长度
+    const len = nfaIds.length;
+    let width = 0.8;
+    let fontsize = 14;
+
+    if (len > 8) {
+      // 增加系数 0.04 -> 0.06，让圈更大一点
+      width = 0.8 + (len - 8) * 0.06; 
+      // 限制最大宽度放宽到 3.0
+      if (width > 3.0) width = 3.0;
+      
+      // 字体缩放更激进
+      fontsize = 12;
+      if (len > 15) fontsize = 11;
+      if (len > 25) fontsize = 10;
+    }
     
-    const shapeStart = state.isAccepting ? '((' : '(';
-    const shapeEnd = state.isAccepting ? '))' : ')';
-    
-    mermaid += `    ${state.id}${shapeStart}"${label.replace(/\n/g, '<br/>')}"${shapeEnd}:::${className}\n`;
+    // 保持正圆
+    let height = width;
+
+    dot += `  ${state.id} [label="${label}", shape=${shape}, fillcolor="${fillcolor}", color="${color}", width=${width}, height=${height}, fontsize=${fontsize}];\n`;
   });
 
   // 边
+  // 为了合并多条边 (如 a,b 指向同一个节点)，我们需要先聚合
   states.forEach(state => {
-    state.transitions.forEach((target, symbol) => {
-      mermaid += `    ${state.id} -->|"${symbol}"| ${target.id}\n`;
-    });
+      const targetMap = new Map<number, string[]>();
+      
+      state.transitions.forEach((target, symbol) => {
+          if (!targetMap.has(target.id)) {
+              targetMap.set(target.id, []);
+          }
+          targetMap.get(target.id)!.push(symbol);
+      });
+
+      targetMap.forEach((symbols, targetId) => {
+          const label = symbols.sort().join(',');
+          dot += `  ${state.id} -> ${targetId} [label="${label}"];\n`;
+      });
   });
 
-  return mermaid;
+  dot += '}\n';
+  return dot;
 }
