@@ -328,34 +328,112 @@ M = (Q, Σ, δ, q0, F)
 
 1️⃣ **单字符** `a`
 
-```mermaid
-flowchart LR
-  s(( )) -->|a| f(( ))
+```viz
+digraph {
+  rankdir=LR;
+  bgcolor="transparent";
+  node [shape=circle, fontname="Helvetica"];
+  edge [fontname="Helvetica"];
+  s [label="start"];
+  f [label="end"];
+  s -> f [label="a"];
+}
 ```
 
 2️⃣ **并** `r | s`：一个入口，两条 ε 分叉，两个出口再 ε 合并
 
-```mermaid
-flowchart LR
-  s(( )) -->|ε| r0(( ))
-  s -->|ε| s0(( ))
-  r1(( )) -->|ε| f(( ))
-  s1(( )) -->|ε| f(( ))
+```viz
+digraph {
+  rankdir=LR;
+  bgcolor="transparent";
+  node [shape=circle, fontname="Helvetica"];
+  edge [fontname="Helvetica"];
+  
+  s [label="s"];
+  f [label="f"];
+  
+  subgraph cluster_r {
+      label="NFA(r)";
+      style=dashed;
+      color=gray;
+      r_in [label="r_in"];
+      r_out [label="r_out"];
+      r_in -> r_out [style=invis];
+  }
+  
+  subgraph cluster_s {
+      label="NFA(s)";
+      style=dashed;
+      color=gray;
+      s_in [label="s_in"];
+      s_out [label="s_out"];
+      s_in -> s_out [style=invis];
+  }
+
+  s -> r_in [label="ε"];
+  s -> s_in [label="ε"];
+  r_out -> f [label="ε"];
+  s_out -> f [label="ε"];
+}
 ```
 
 3️⃣ **连接** `rs`：把 r 的终态用 ε 连到 s 的初态
 
-```
-r  --ε-->  s
+```viz
+digraph {
+  rankdir=LR;
+  bgcolor="transparent";
+  node [shape=circle, fontname="Helvetica"];
+  edge [fontname="Helvetica"];
+  
+  subgraph cluster_r {
+      label="NFA(r)";
+      style=dashed;
+      color=gray;
+      r_in [label="r_in"];
+      r_out [label="r_out"];
+      r_in -> r_out [style=invis];
+  }
+  
+  subgraph cluster_s {
+      label="NFA(s)";
+      style=dashed;
+      color=gray;
+      s_in [label="s_in"];
+      s_out [label="s_out"];
+      s_in -> s_out [style=invis];
+  }
+  
+  r_out -> s_in [label="ε"];
+}
 ```
 
 4️⃣ **闭包** `r*`：允许 0 次或多次
 
-```
-s --ε--> f
-s --ε--> r0
-r1 --ε--> r0
-r1 --ε--> f
+```viz
+digraph {
+  rankdir=LR;
+  bgcolor="transparent";
+  node [shape=circle, fontname="Helvetica"];
+  edge [fontname="Helvetica"];
+  
+  s [label="s"];
+  f [label="f"];
+  
+  subgraph cluster_r {
+      label="NFA(r)";
+      style=dashed;
+      color=gray;
+      r_in [label="r_in"];
+      r_out [label="r_out"];
+      r_in -> r_out [style=invis];
+  }
+  
+  s -> r_in [label="ε"];
+  s -> f [label="ε"];
+  r_out -> r_in [label="ε"];
+  r_out -> f [label="ε"];
+}
 ```
 
 > 口诀：**并分叉、连串联、闭包回环+ε**。
@@ -375,6 +453,52 @@ r1 --ε--> f
 - 闭包中反复读 `b` 或 `c`（也可以不读）  
 
 **结论**：该 NFA 识别的就是 `a(b|c)*`。
+
+```viz
+digraph {
+  rankdir=LR;
+  bgcolor="transparent";
+  node [shape=circle, fontname="Helvetica"];
+  edge [fontname="Helvetica"];
+  
+  start [shape=none, label="start"];
+  0 [label="0"];
+  1 [label="1"];
+  
+  // a
+  start -> 0;
+  0 -> 1 [label="a"];
+  
+  // closure start
+  2 [label="2"];
+  3 [label="3", shape=doublecircle]; // Final state of whole NFA
+  
+  1 -> 2 [label="ε"]; // connect a to closure
+  
+  // closure epsilon structure
+  2 -> 3 [label="ε"]; // 0 times
+  
+  // Union body start/end
+  4 [label="4"];
+  7 [label="7"];
+  
+  2 -> 4 [label="ε"]; // enter loop
+  7 -> 2 [label="ε"]; // loop back
+  7 -> 3 [label="ε"]; // exit loop (redundant with 2->3 usually, but standard Thompson adds this)
+  
+  // Union b|c
+  5 [label="5"]; 
+  6 [label="6"];
+  
+  4 -> 5 [label="ε"];
+  4 -> 6 [label="ε"];
+  
+  5 -> 7 [label="b"]; // simplified b node
+  6 -> 7 [label="c"]; // simplified c node
+}
+```
+
+> 注：上图为示意图，标准 Thompson 构造中 `b` 和 `c` 内部也应包含完整的 `start->end` 结构，这里为了图形简洁进行了适当折叠。
 
 <VisualizationLink 
   title="实验：正则表达式转 NFA" 
@@ -536,6 +660,31 @@ r = a(b|c)*
 
 给出一套可行的 NFA（编号便于后续子集构造）：  
 
+```viz
+digraph {
+  rankdir=LR;
+  bgcolor="transparent";
+  node [shape=circle, fontname="Helvetica"];
+  edge [fontname="Helvetica"];
+  start [shape=point];
+  9 [shape=doublecircle];
+  
+  start -> 0;
+  0 -> 1 [label="a"];
+  1 -> 8 [label="ε"];
+  8 -> 6 [label="ε"];
+  8 -> 9 [label="ε"];
+  6 -> 2 [label="ε"];
+  6 -> 4 [label="ε"];
+  2 -> 3 [label="b"];
+  4 -> 5 [label="c"];
+  3 -> 7 [label="ε"];
+  5 -> 7 [label="ε"];
+  7 -> 6 [label="ε"];
+  7 -> 9 [label="ε"];
+}
+```
+
 ```
 0 --a--> 1
 1 --ε--> 8
@@ -582,6 +731,36 @@ D = ∅  (死状态)
 ```
 
 子集构造得到的主要转移：  
+
+```viz
+digraph {
+  rankdir=LR;
+  bgcolor="transparent";
+  node [shape=circle, fontname="Helvetica"];
+  edge [fontname="Helvetica"];
+  start [shape=point];
+  
+  A [label="A"];
+  B [label="B", shape=doublecircle];
+  C [label="C", shape=doublecircle];
+  E [label="E", shape=doublecircle];
+  D [label="D"];
+  
+  start -> A;
+  A -> B [label="a"];
+  A -> D [label="b,c"];
+  B -> D [label="a"];
+  B -> C [label="b"];
+  B -> E [label="c"];
+  C -> D [label="a"];
+  C -> C [label="b"];
+  C -> E [label="c"];
+  E -> D [label="a"];
+  E -> C [label="b"];
+  E -> E [label="c"];
+  D -> D [label="a,b,c"];
+}
+```
 
 ```
 A --a--> B
@@ -633,6 +812,29 @@ D --c--> D
 - `A`（初态）  
 - `S`（合并后的接受态：B/C/E）  
 - `D`（死状态）  
+
+**结果最小化 DFA 图示：**
+
+```viz
+digraph {
+  rankdir=LR;
+  bgcolor="transparent";
+  node [shape=circle, fontname="Helvetica"];
+  edge [fontname="Helvetica"];
+  start [shape=point];
+  
+  A [label="A"];
+  S [label="S", shape=doublecircle]; // {B,C,E}
+  D [label="D"];
+  
+  start -> A;
+  A -> S [label="a"];
+  A -> D [label="b,c"];
+  S -> D [label="a"];
+  S -> S [label="b,c"];
+  D -> D [label="a,b,c"];
+}
+```
 
 转移：  
 
@@ -690,6 +892,48 @@ D --c--> D
 
 每个 token 一张图，词法分析器在图之间切换。
 
+**示例：识别 Relop（关系运算符）**
+
+关系运算符包含：`<`, `<=`, `<>`, `=`, `>`, `>=`。
+
+```viz
+digraph {
+  rankdir=LR;
+  bgcolor="transparent";
+  node [shape=circle, fontname="Helvetica"];
+  edge [fontname="Helvetica"];
+  
+  start [shape=point];
+  0 [label="0"];
+  1 [label="1"];
+  2 [label="2", shape=doublecircle]; // <
+  3 [label="3", shape=doublecircle]; // <=
+  4 [label="4", shape=doublecircle]; // <>
+  5 [label="5", shape=doublecircle]; // =
+  6 [label="6"];
+  7 [label="7", shape=doublecircle]; // >
+  8 [label="8", shape=doublecircle]; // >=
+  
+  start -> 0;
+  
+  // < branch
+  0 -> 1 [label="<"];
+  1 -> 2 [label="other"]; // return LT, retract 1
+  1 -> 3 [label="="];     // return LE
+  1 -> 4 [label=">"];     // return NE
+  
+  // = branch
+  0 -> 5 [label="="];     // return EQ
+  
+  // > branch
+  0 -> 6 [label=">"];
+  6 -> 7 [label="other"]; // return GT, retract 1
+  6 -> 8 [label="="];     // return GE
+}
+```
+
+> **注意**：标有 `other` 的边表示需要**回退（Retract）**一个字符，因为多读了一个不属于该运算符的字符。
+
 ### 2.7.2 保留字与标识符
 
 **问题**：关键字与标识符形式相似，如 `if` 与 `id`。
@@ -702,6 +946,50 @@ D --c--> D
 4. 否则 → 返回 `id` token
 
 ### 2.7.3 最长匹配原则
+
+**Longest Match**：
+
+- 能匹配多长就匹配多长
+- 例如：`<=` 不应该被拆成 `<` 和 `=`
+
+### 2.7.4 词法分析器的典型结构
+
+```mermaid
+flowchart LR
+  A[Input Buffer] --> B[Scanner]
+  B --> C[Token Stream]
+  B --> D[Symbol Table]
+```
+
+关键指针：
+
+- `lexeme_begin`：当前词素起点
+- `forward`：向前扫描
+
+常用技巧：**双缓冲**，减少 I/O 开销。
+
+### 2.7.5 词法错误处理
+
+常见错误：
+
+- 未识别字符
+- 字符串未闭合
+- 非法数字格式
+
+处理方式：
+
+- 报错 + 跳过非法字符
+- 或返回 `ERROR` token 交给语法分析器处理
+
+## 可视化实验
+
+本章包含以下交互式实验组件，点击下方链接即可体验：
+
+<VisualizationLink 
+  title="词法分析可视化实验" 
+  desc="包含：Regex转NFA、NFA转DFA、DFA最小化" 
+  href="/compiler-principles/visualization/regex-to-nfa" 
+/>
 
 **Longest Match**：
 

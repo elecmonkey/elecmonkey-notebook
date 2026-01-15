@@ -125,17 +125,23 @@ x := y
 
 ### 6.9.1 整体布局
 
+```viz
+digraph {
+  rankdir=TB;
+  bgcolor="transparent";
+  node [shape=record, fontname="Helvetica"];
+  edge [fontname="Helvetica"];
+
+  memory [label="{ <high> 高地址 | { 栈区 (Stack)\n↓ 向下增长 | <stack_free> } | { <heap_free> | 堆区 (Heap)\n↑ 向上增长 } | { 全局/静态数据区 (Static) } | { 代码区 (Code) } | <low> 低地址 }"];
+
+  // Invisible edges to enforce structure if needed, but record is usually enough
+}
 ```
-高地址
-┌────────────┐
-│ 栈（向下增长） │
-├────────────┤
-│ 全局变量区     │
-├────────────┤
-│ 堆（向上增长） │
-└────────────┘
-低地址
-```
+
+> **说明**：
+> - **栈区**：存放函数调用的活动记录，从高地址向低地址增长。
+> - **堆区**：存放动态分配的对象（`malloc`/`new`），从低地址向高地址增长。
+> - 两者中间是**空闲区域**，直到相遇（内存溢出）。
 
 ### 6.9.2 C 函数的典型栈帧
 

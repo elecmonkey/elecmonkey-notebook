@@ -152,6 +152,12 @@ L → L , id | id
 - 用 `true/false` 跳转地址
 - 依靠“继承属性”把目标地址传下来
 
+<VisualizationLink 
+  title="实验：回填技术 (Backpatching)" 
+  desc="布尔表达式短路计算与跳转生成" 
+  href="/compiler-principles/visualization/backpatching" 
+/>
+
 ### 4.6.2 控制流语句
 
 经典语句：
@@ -165,6 +171,12 @@ L → L , id | id
 - `S.next`
 
 这些属性告诉翻译器：**跳到哪里**。
+
+<VisualizationLink 
+  title="实验：控制流分析 (CFG)" 
+  desc="基本块划分与控制流图可视化" 
+  href="/compiler-principles/visualization/control-flow-analysis" 
+/>
 
 
 
