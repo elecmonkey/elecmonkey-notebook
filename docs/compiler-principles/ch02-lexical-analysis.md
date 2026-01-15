@@ -730,3 +730,10 @@ flowchart LR
 输入正则表达式，先生成 NFA（Thompson 算法），再自动转换为 DFA（子集构造法）。
 
 <NfaToDfa />
+
+## 可视化：DFA 最小化 (DFA Minimization)
+
+输入正则表达式，先生成 DFA，然后使用**Hopcroft 算法 (划分等价类)** 自动进行最小化。
+表格展示了每一次划分的过程。
+
+<DfaMinimizer />
