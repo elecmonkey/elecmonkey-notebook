@@ -96,6 +96,12 @@ x := y
 - **Temporaries**：编译器临时变量
 - **Saved machine status**：寄存器现场
 
+<VisualizationLink 
+  title="实验：活动记录 (Activation Record)" 
+  desc="C 语言函数调用栈的动态演示" 
+  href="/compiler-principles/visualization/activation-record" 
+/>
+
 
 
 ## 6.8 调用序列（Calling Sequence）

@@ -18,6 +18,7 @@ const GrammarTransformer = defineAsyncComponent(() => import('./components/compi
 const DfaMinimizer = defineAsyncComponent(() => import('./components/compiler-principles/DfaMinimizer.vue'))
 const LR1Analyzer = defineAsyncComponent(() => import('./components/compiler-principles/LR1Analyzer.vue'))
 const SDDAnalyzer = defineAsyncComponent(() => import('./components/compiler-principles/SDDAnalyzer.vue'))
+const ActivationRecord = defineAsyncComponent(() => import('./components/compiler-principles/ActivationRecord.vue'))
 
 export default {
   extends: Theme,
@@ -38,6 +39,7 @@ export default {
     app.component('DfaMinimizer', DfaMinimizer)
     app.component('LR1Analyzer', LR1Analyzer)
     app.component('SDDAnalyzer', SDDAnalyzer)
+    app.component('ActivationRecord', ActivationRecord)
     app.component('VisualizationLink', VisualizationLink)
   }
 }
