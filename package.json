@@ -19,6 +19,6 @@
   },
   "devDependencies": {
     "vitepress-plugin-mermaid": "^2.0.17",
-    "vitepress-plugin-viz": "^1.0.0-beta.7"
+    "vitepress-plugin-viz": "^1.0.0-beta.8"
   }
 }
