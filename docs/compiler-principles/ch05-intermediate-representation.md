@@ -97,9 +97,21 @@ a = t2
 ```
 
 <VisualizationLink 
+  title="实验：中间代码生成 (TAC)" 
+  desc="C 代码到四元式的翻译过程" 
+  href="/compiler-principles/visualization/tac-generation" 
+/>
+
+<VisualizationLink 
   title="实验：控制流分析 (CFG)" 
   desc="基本块划分、流图构建与循环识别" 
   href="/compiler-principles/visualization/control-flow-analysis" 
+/>
+
+<VisualizationLink 
+  title="实验：回填技术 (Backpatching)" 
+  desc="布尔表达式翻译中的回填演示" 
+  href="/compiler-principles/visualization/backpatching" 
 />
 
 
