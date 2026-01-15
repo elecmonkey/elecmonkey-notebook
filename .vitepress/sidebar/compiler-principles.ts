@@ -23,6 +23,7 @@ export default [
       { text: 'LR(1) 分析表', link: '/compiler-principles/visualization/lr1-analyzer' },
       { text: '语法制导翻译 (SDD)', link: '/compiler-principles/visualization/sdd-analyzer' },
       { text: '活动记录 (C语言)', link: '/compiler-principles/visualization/activation-record' },
+      { text: '控制流分析 (CFG)', link: '/compiler-principles/visualization/control-flow-analysis' },
     ]
   }
 ] 

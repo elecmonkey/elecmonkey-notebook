@@ -96,6 +96,11 @@ t2 = b + t1
 a = t2
 ```
 
+<VisualizationLink 
+  title="实验：控制流分析 (CFG)" 
+  desc="基本块划分、流图构建与循环识别" 
+  href="/compiler-principles/visualization/control-flow-analysis" 
+/>
 
 
 ## 5.4 四元式（Quadruples）
