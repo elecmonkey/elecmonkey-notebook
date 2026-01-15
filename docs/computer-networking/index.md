@@ -27,8 +27,7 @@
 
 - 《计算机网络：自顶向下方法》(Computer Networking: A Top-Down Approach) — James F. Kurose & Keith W. Ross
 - 《TCP/IP Illustrated》— W. Richard Stevens
-- RFC 文档集合（https://www.rfc-editor.org/）
-- Wireshark 项目（https://www.wireshark.org/）
+- RFC 文档集合 - [https://www.rfc-editor.org/](https://www.rfc-editor.org/)
 
 ## 相关项目
 
