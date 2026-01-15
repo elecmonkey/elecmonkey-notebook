@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@viz-js/viz':
+        specifier: ^3.24.0
+        version: 3.24.0
       '@vue-flow/core':
         specifier: ^1.48.1
         version: 1.48.1(vue@3.5.26)
@@ -541,6 +544,9 @@ packages:
     peerDependencies:
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0
       vue: ^3.2.25
+
+  '@viz-js/viz@3.24.0':
+    resolution: {integrity: sha512-sTRz2cFN6PwICVC7GVlF2aYNAZ/LwF7Y1mp3B+8LXQ7otyHrzQYSzNBwJ4lctL/aS3x97ppw59z6zIW+wPs6bQ==}
 
   '@vue-flow/core@1.48.1':
     resolution: {integrity: sha512-3IxaMBLvWRbznZ4CuK0kVhp4Y4lCDQx9nhi48Swp6PwPw29KNhmiKd2kaBogYeWjGLb/tLjlE9V0s3jEmKCYWw==}
@@ -1935,6 +1941,8 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.29
       vite: 7.3.0(@types/node@22.13.17)(lightningcss@1.30.2)
       vue: 3.5.26
+
+  '@viz-js/viz@3.24.0': {}
 
   '@vue-flow/core@1.48.1(vue@3.5.26)':
     dependencies:

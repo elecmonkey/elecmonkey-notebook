@@ -264,3 +264,93 @@ export function nfaToMermaid(nfa: NFAFragment, direction: 'LR' | 'TD' = 'LR'): s
 
   return mermaid;
 }
+
+// 转换为 Graphviz DOT 格式
+export function nfaToDot(nfa: NFAFragment, direction: 'LR' | 'TD' = 'LR'): string {
+  if (!nfa) return '';
+
+  let dot = 'digraph NFA {\n';
+  dot += `  rankdir=${direction};\n`;
+  dot += '  graph [bgcolor="transparent", nodesep=0.5, ranksep=0.5, splines=spline];\n';
+  dot += '  node [fontname="Helvetica", fontsize=14, shape=circle, fixedsize=true, width=0.6, height=0.6, style="filled", fillcolor="white", color="#333", penwidth=1.5];\n';
+  dot += '  edge [fontname="Helvetica", fontsize=12, arrowsize=0.8];\n';
+
+  // 1. 收集所有状态和边 (使用简单的遍历，不再计算层级)
+  const visited = new Set<number>();
+  const queue: NFAState[] = [nfa.start];
+  visited.add(nfa.start.id);
+  const allStates = new Set<NFAState>();
+  
+  // 简单的 BFS 仅用于收集节点
+  let head = 0;
+  while(head < queue.length){
+    const state = queue[head++];
+    allStates.add(state);
+    
+    // 收集所有边并加入队列
+    state.transitions.forEach(targets => {
+      targets.forEach(target => {
+        if(!visited.has(target.id)){
+          visited.add(target.id);
+          queue.push(target);
+        }
+      });
+    });
+  }
+
+  // 2. 定义节点
+  allStates.forEach(state => {
+    let label = state.id.toString();
+    let shape = 'circle';
+    let fillcolor = 'white';
+    let color = '#333';
+    
+    if (state === nfa.start) {
+      label = 'start';
+      fillcolor = '#e1f5fe';
+      color = '#01579b';
+    }
+    
+    if (state.isAccepting) {
+      shape = 'doublecircle';
+      fillcolor = '#e8f5e9';
+      color = '#2e7d32';
+      if (state === nfa.start) {
+         label = 'start/end';
+      } else {
+         label = 'end';
+      }
+    }
+
+    dot += `  ${state.id} [label="${label}", shape=${shape}, fillcolor="${fillcolor}", color="${color}"];\n`;
+  });
+
+  // 3. 定义边 (关键优化：利用 weight 区分骨干和旁路)
+  allStates.forEach(state => {
+    state.transitions.forEach((targets, symbol) => {
+      targets.forEach(target => {
+        const isEpsilon = symbol === 'ε';
+        const label = isEpsilon ? 'ε' : symbol;
+        
+        // 核心优化策略：
+        // 1. 实义字符边 (a, b...) 权重高 (weight=8)，强制拉直，构成主干
+        // 2. ε 边权重低 (weight=1)，允许弯曲，适应主干
+        
+        let weight = 1;
+        let color = '#333';
+        let penwidth = 1.0;
+        
+        if (!isEpsilon) {
+          weight = 8;
+          color = '#000';
+          penwidth = 1.5;
+        }
+
+        dot += `  ${state.id} -> ${target.id} [label="${label}", weight=${weight}, color="${color}", penwidth=${penwidth}];\n`;
+      });
+    });
+  });
+
+  dot += '}\n';
+  return dot;
+}
