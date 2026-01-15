@@ -14,6 +14,7 @@ export default [
   {
     text: '可视化实验',
     items: [
+      { text: '总览', link: '/compiler-principles/visualization/' },
       { text: '正则表达式转 NFA', link: '/compiler-principles/visualization/regex-to-nfa' },
       { text: 'NFA 转 DFA', link: '/compiler-principles/visualization/nfa-to-dfa' },
       { text: 'DFA 最小化', link: '/compiler-principles/visualization/dfa-minimizer' },
