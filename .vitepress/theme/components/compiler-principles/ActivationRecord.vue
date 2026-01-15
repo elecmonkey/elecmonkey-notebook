@@ -179,7 +179,7 @@ const FRAME_WIDTH = 280
           <div class="stack-growth-indicator">
             <span>高地址</span>
             <div class="arrow">↓</div>
-            <span>低地址 (栈增长方向)</span>
+            <span>低地址</span>
           </div>
 
           <transition-group name="list" tag="div" class="stack-frames">

@@ -275,10 +275,12 @@ const conflictCount = computed(() => {
 }
 
 .lr-table {
-  width: 100%;
+  width: 100% !important;
   border-collapse: collapse;
   font-size: 0.85em;
   background-color: var(--vp-c-bg);
+  display: table !important;
+  /* table-layout: fixed; LR1 表格通常列很多，不建议 fixed，但要 width 100% */
 }
 
 .lr-table th, .lr-table td {

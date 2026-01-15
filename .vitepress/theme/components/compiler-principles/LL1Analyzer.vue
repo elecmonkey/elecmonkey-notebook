@@ -248,6 +248,15 @@ watch(input, analyze, { immediate: true })
   background-color: var(--vp-c-bg);
 }
 
+.data-table {
+  width: 100% !important;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  background-color: var(--vp-c-bg);
+  display: table !important;
+  /* table-layout: fixed;  LL1 表格列数不固定，不适合强制 fixed 平分，但要设 width 100% */
+}
+
 .data-table th,
 .data-table td {
   border: 1px solid var(--vp-c-divider);

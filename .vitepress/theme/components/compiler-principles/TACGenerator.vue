@@ -155,30 +155,29 @@ generateTAC()
 
     <div class="panel tac-panel">
       <h3>2. 四元式序列 (Quadruples)</h3>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Op</th>
-              <th>Arg1</th>
-              <th>Arg2</th>
-              <th>Result</th>
-              <th>说明</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="q in quadruples" :key="q.id">
-              <td class="id">({{ q.id }})</td>
-              <td class="op">{{ q.op }}</td>
-              <td>{{ q.arg1 }}</td>
-              <td>{{ q.arg2 }}</td>
-              <td class="res">{{ q.result }}</td>
-              <td class="desc">{{ q.desc }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- 移除 .table-container 的包裹，直接用 table，或者将 table-container 改为 full width -->
+      <table class="tac-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Op</th>
+            <th>Arg1</th>
+            <th>Arg2</th>
+            <th>Result</th>
+            <th>Desc</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="q in quadruples" :key="q.id">
+            <td class="id">({{ q.id }})</td>
+            <td class="op">{{ q.op }}</td>
+            <td>{{ q.arg1 }}</td>
+            <td>{{ q.arg2 }}</td>
+            <td class="res">{{ q.result }}</td>
+            <td class="desc">{{ q.desc }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -243,32 +242,24 @@ button.primary {
   cursor: pointer;
 }
 
-.table-container {
-  flex: 1;
-  overflow-y: auto;
-  background: var(--vp-c-bg);
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 4px;
-}
-
-table {
-  width: 100%;
+.tac-table {
+  width: 100% !important;
   border-collapse: collapse;
-  font-family: monospace;
-  font-size: 13px;
+  font-size: 0.9em;
+  table-layout: fixed !important;
+  display: table !important;
 }
 
-th, td {
+.tac-table th,
+.tac-table td {
+  border: 1px solid var(--vp-c-divider);
   padding: 8px;
-  border-bottom: 1px solid var(--vp-c-divider);
   text-align: left;
 }
 
-th {
-  background: var(--vp-c-bg-alt);
-  font-weight: bold;
-  position: sticky;
-  top: 0;
+.tac-table th {
+  background-color: var(--vp-c-bg-alt);
+  font-weight: 600;
 }
 
 .id { color: var(--vp-c-text-3); width: 60px; }

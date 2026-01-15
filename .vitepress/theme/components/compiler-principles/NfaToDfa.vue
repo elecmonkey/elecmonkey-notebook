@@ -104,23 +104,20 @@ onMounted(() => {
         <div ref="nfaContainerRef" class="viz-render"></div>
       </div>
 
-      <div class="arrow">⬇️ Subset Construction ⬇️</div>
-
-      <div class="steps-box" v-if="constructionSteps.length > 0">
-        <h4>Construction Steps</h4>
-        <div class="table-container">
-          <table class="steps-table">
-            <thead>
-              <tr>
-                <th>Current DFA State</th>
-                <th>Input Symbol</th>
-                <th>move(I, a)</th>
-                <th>ε-closure(move)</th>
-                <th>Target DFA State</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(step, index) in constructionSteps" :key="index">
+      <div class="diagram-box" v-if="constructionSteps.length > 0">
+        <h4>Step 2: Subset Construction Steps</h4>
+        <table class="steps-table">
+          <thead>
+            <tr>
+              <th>Current DFA State</th>
+              <th style="width: 120px;">Input Symbol</th>
+              <th style="width: 120px;">move(I, a)</th>
+              <th>ε-closure(move)</th>
+              <th>Target DFA State</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(step, index) in constructionSteps" :key="index">
                 <td>
                   <strong>{{ step.dfaStateId }}</strong> <br/> 
                   <small class="nfa-set">{ {{ step.nfaStates.join(',') }} }</small>
@@ -135,17 +132,16 @@ onMounted(() => {
                   <span v-else>∅</span>
                 </td>
                 <td>
-                  <strong>{{ step.targetDfaStateId }}</strong> <br/>
+                  <strong>{{ step.targetDfaStateId }}</strong>
                   <span v-if="step.isNewState" class="badge-new">New</span>
                 </td>
               </tr>
             </tbody>
-          </table>
-        </div>
+        </table>
       </div>
 
       <div class="diagram-box">
-        <h4>Step 2: DFA</h4>
+        <h4>Step 3: DFA</h4>
         <div ref="dfaContainerRef" class="viz-render"></div>
         <div class="legend">
           <small>* Labels like <code>{0,1,2}</code> indicate the set of NFA states merged into this DFA state.</small>
@@ -283,28 +279,17 @@ onMounted(() => {
   font-size: 0.85em;
 }
 
-.steps-box {
+.steps-section {
   width: 100%;
-  padding: 16px;
-  background-color: var(--vp-c-bg);
-  border-radius: 4px;
-  border: 1px solid var(--vp-c-divider);
-}
-
-.steps-box h4 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-.table-container {
-  overflow-x: auto;
+  margin-bottom: 24px;
 }
 
 .steps-table {
-  width: 100%;
+  width: 100% !important;
   border-collapse: collapse;
   font-size: 0.9em;
+  table-layout: fixed !important; /* 强制填满 */
+  display: table !important;
 }
 
 .steps-table th,
@@ -312,32 +297,34 @@ onMounted(() => {
   border: 1px solid var(--vp-c-divider);
   padding: 8px;
   text-align: left;
+  /* 移除可能的 max-width 限制 */
+  word-wrap: break-word; /* 允许内容换行 */
 }
 
 .steps-table th {
-  background-color: var(--vp-c-bg-alt);
-  font-weight: 600;
+  background-color: var(--vp-c-bg-soft);
+  font-weight: bold;
 }
 
 .nfa-set {
   color: var(--vp-c-text-2);
-  display: block;
+  font-family: monospace;
 }
 
 .symbol-cell {
-  text-align: center;
   font-weight: bold;
-  font-family: monospace;
+  text-align: center;
 }
 
 .badge-new {
   display: inline-block;
-  font-size: 0.75em;
-  padding: 2px 6px;
   background-color: var(--vp-c-brand-1);
   color: white;
+  font-size: 0.75em;
+  padding: 2px 6px;
   border-radius: 4px;
-  margin-left: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 .viz-render {
   width: 100%;

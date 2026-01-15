@@ -146,10 +146,12 @@ watch(input, () => {
 }
 
 .result-table {
-  width: 100%;
+  width: 100% !important;
   border-collapse: collapse;
   margin-bottom: 16px;
   background-color: var(--vp-c-bg);
+  table-layout: fixed !important;
+  display: table !important;
 }
 
 .result-table th,
@@ -157,6 +159,8 @@ watch(input, () => {
   border: 1px solid var(--vp-c-divider);
   padding: 8px 12px;
   text-align: left;
+  width: 33.33%; /* 三列平分宽度 */
+  box-sizing: border-box; /* 包含 padding */
 }
 
 .result-table th {

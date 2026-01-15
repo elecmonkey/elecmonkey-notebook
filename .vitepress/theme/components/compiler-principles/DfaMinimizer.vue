@@ -114,30 +114,28 @@ onMounted(() => {
 
       <div class="diagram-section">
         <h3>2. Partition Refinement Steps</h3>
-        <div class="table-container">
-          <table class="steps-table">
-            <thead>
-              <tr>
-                <th>Round</th>
-                <th>Groups (Sets of State IDs)</th>
-                <th>Note</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="step in minResult.steps" :key="step.round">
-                <td class="round-cell">{{ step.round }}</td>
-                <td>
-                  <div class="group-list">
-                    <span v-for="(g, i) in step.groups" :key="i" class="group-item">
-                      { {{ g.join(',') }} }
-                    </span>
-                  </div>
-                </td>
-                <td class="note-cell">{{ step.splitReason }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <table class="steps-table">
+          <thead>
+            <tr>
+              <th style="width: 80px;">Round</th>
+              <th>Groups (Sets of State IDs)</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="step in minResult.steps" :key="step.round">
+              <td class="round-cell">{{ step.round }}</td>
+              <td>
+                <div class="group-list">
+                  <span v-for="(g, i) in step.groups" :key="i" class="group-item">
+                    { {{ g.join(',') }} }
+                  </span>
+                </div>
+              </td>
+              <td class="note-cell">{{ step.splitReason }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="arrow">⬇️ Result ⬇️</div>
@@ -292,9 +290,11 @@ onMounted(() => {
 }
 
 .steps-table {
-  width: 100%;
+  width: 100% !important;
   border-collapse: collapse;
   font-size: 0.9em;
+  table-layout: fixed !important;
+  display: table !important;
 }
 
 .steps-table th,
@@ -312,7 +312,6 @@ onMounted(() => {
 .round-cell {
   text-align: center;
   font-weight: bold;
-  width: 60px;
 }
 
 .group-list {
