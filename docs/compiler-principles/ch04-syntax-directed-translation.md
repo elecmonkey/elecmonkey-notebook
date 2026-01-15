@@ -101,6 +101,13 @@ F → num
 F.val = num.lexval
 ```
 
+<VisualizationLink 
+  title="实验：语法制导翻译 (SDD)" 
+  desc="交互式演示表达式求值过程" 
+  href="/compiler-principles/visualization/sdd-analyzer" 
+/>
+
+
 ### 4.4.2 类型检查
 
 为表达式加上 `type` 属性：

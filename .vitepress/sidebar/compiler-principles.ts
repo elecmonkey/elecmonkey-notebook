@@ -21,6 +21,7 @@ export default [
       { text: '文法变换', link: '/compiler-principles/visualization/grammar-transformer' },
       { text: 'LL(1) 预测分析表', link: '/compiler-principles/visualization/ll1-analyzer' },
       { text: 'LR(1) 分析表', link: '/compiler-principles/visualization/lr1-analyzer' },
+      { text: '语法制导翻译 (SDD)', link: '/compiler-principles/visualization/sdd-analyzer' },
     ]
   }
 ] 
