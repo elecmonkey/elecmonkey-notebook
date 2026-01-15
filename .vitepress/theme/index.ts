@@ -11,6 +11,7 @@ import RegexToNfa from './components/compiler-principles/RegexToNfa.vue'
 import FirstFollow from './components/compiler-principles/FirstFollow.vue'
 import NfaToDfa from './components/compiler-principles/NfaToDfa.vue'
 import LL1Analyzer from './components/compiler-principles/LL1Analyzer.vue'
+import GrammarTransformer from './components/compiler-principles/GrammarTransformer.vue'
 
 export default {
   extends: Theme,
@@ -27,5 +28,6 @@ export default {
     app.component('FirstFollow', FirstFollow)
     app.component('NfaToDfa', NfaToDfa)
     app.component('LL1Analyzer', LL1Analyzer)
+    app.component('GrammarTransformer', GrammarTransformer)
   }
 }

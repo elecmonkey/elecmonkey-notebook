@@ -327,3 +327,11 @@ A → α · β
 3. 检测冲突并判断是否为 LL(1) 文法
 
 <LL1Analyzer />
+
+## 可视化：文法变换器 (消除左递归/提取左公因子)
+
+输入文法，自动尝试以下变换，并检查变换前后是否满足 LL(1) 条件：
+1. **消除左递归** (Direct & Indirect)
+2. **提取左公因子** (Left Factoring)
+
+<GrammarTransformer />
