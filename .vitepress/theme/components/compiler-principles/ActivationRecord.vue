@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
+import { simulateC, type ExecutionStep } from './utils/c-runtime-simulator'
+
 interface StackFrame {
   id: string
   funcName: string
@@ -16,63 +18,61 @@ interface StackFrame {
   height?: number
 }
 
-// 模拟的 C 代码执行步骤
-interface ExecutionStep {
-  line: number
-  code: string
-  desc: string
-  action: 'push' | 'pop' | 'update' | 'none'
-  funcName?: string
-  data?: Partial<StackFrame>
+// 示例 C 代码
+const defaultCode = `int main() {
+  int a = 10;
+  int result = fact(3);
+  return 0;
 }
 
-// 示例 C 代码
-const codeLines = [
-  'int main() {',
-  '  int a = 10;',
-  '  int result = fact(3);',
-  '  return 0;',
-  '}',
-  '',
-  'int fact(int n) {',
-  '  if (n <= 1) return 1;',
-  '  int temp = fact(n - 1);',
-  '  return n * temp;',
-  '}'
-]
+int fact(int n) {
+  if (n <= 1) return 1;
+  int temp = fact(n - 1);
+  return n * temp;
+}`
 
-// 预定义执行步骤
-const steps: ExecutionStep[] = [
-  { line: 0, code: 'int main() {', desc: '程序开始，main 函数入栈', action: 'push', funcName: 'main', data: { returnAddr: 'OS', oldFP: '0x0000', params: {}, locals: { a: '?', result: '?' } } },
-  { line: 1, code: 'int a = 10;', desc: '初始化局部变量 a = 10', action: 'update', funcName: 'main', data: { locals: { a: '10', result: '?' } } },
-  { line: 2, code: 'int result = fact(3);', desc: '准备调用 fact(3)，压入参数', action: 'push', funcName: 'fact(3)', data: { returnAddr: 'main:3', oldFP: 'main_FP', params: { n: '3' }, locals: { temp: '?' } } },
-  { line: 7, code: 'if (n <= 1) return 1;', desc: 'fact(3): n=3 > 1，继续执行', action: 'none' },
-  { line: 8, code: 'int temp = fact(n - 1);', desc: '调用 fact(2)', action: 'push', funcName: 'fact(2)', data: { returnAddr: 'fact:8', oldFP: 'fact3_FP', params: { n: '2' }, locals: { temp: '?' } } },
-  { line: 7, code: 'if (n <= 1) return 1;', desc: 'fact(2): n=2 > 1，继续执行', action: 'none' },
-  { line: 8, code: 'int temp = fact(n - 1);', desc: '调用 fact(1)', action: 'push', funcName: 'fact(1)', data: { returnAddr: 'fact:8', oldFP: 'fact2_FP', params: { n: '1' }, locals: { temp: '?' } } },
-  { line: 7, code: 'if (n <= 1) return 1;', desc: 'fact(1): n=1 <= 1，返回 1', action: 'none' },
-  { line: 7, code: 'return 1;', desc: 'fact(1) 返回，栈帧弹出', action: 'pop' },
-  { line: 8, code: 'int temp = fact(n - 1);', desc: 'fact(2): 收到返回值 1，赋值给 temp', action: 'update', funcName: 'fact(2)', data: { locals: { temp: '1' } } },
-  { line: 9, code: 'return n * temp;', desc: 'fact(2): 返回 2 * 1 = 2', action: 'pop' },
-  { line: 8, code: 'int temp = fact(n - 1);', desc: 'fact(3): 收到返回值 2，赋值给 temp', action: 'update', funcName: 'fact(3)', data: { locals: { temp: '2' } } },
-  { line: 9, code: 'return n * temp;', desc: 'fact(3): 返回 3 * 2 = 6', action: 'pop' },
-  { line: 2, code: 'int result = fact(3);', desc: 'main: 收到返回值 6，赋值给 result', action: 'update', funcName: 'main', data: { locals: { a: '10', result: '6' } } },
-  { line: 3, code: 'return 0;', desc: 'main 函数返回，程序结束', action: 'pop' }
-]
+const userCode = ref(defaultCode)
+const isCustomMode = ref(false)
+
+// 计算 codeLines
+const codeLines = computed(() => userCode.value.split('\n'))
+
+// 响应式 steps
+const steps = ref<ExecutionStep[]>([])
+
+// 解析用户代码
+function parseUserCodeAndGenSteps() {
+  steps.value = simulateC(userCode.value)
+  reset()
+}
+
+// 监听代码变化（防抖？或者手动点击运行）
+// 这里简单处理：提供一个“重新加载”按钮
 
 const currentStepIndex = ref(0)
 const stack = ref<StackFrame[]>([])
-const activeLine = computed(() => steps[currentStepIndex.value].line)
-const currentDesc = computed(() => steps[currentStepIndex.value].desc)
+const activeLine = computed(() => {
+  if (steps.value.length === 0) return 0
+  return steps.value[currentStepIndex.value].line
+})
+const currentDesc = computed(() => {
+  if (steps.value.length === 0) return ''
+  return steps.value[currentStepIndex.value].desc
+})
 
 function reset() {
   currentStepIndex.value = 0
   stack.value = []
-  executeStep(0)
+  if (steps.value.length > 0) {
+    executeStep(0)
+  }
 }
 
+// ... prevStep, nextStep, executeStep 保持不变 ...
+// 注意 executeStep 中 steps 改为 steps.value
+
 function nextStep() {
-  if (currentStepIndex.value < steps.length - 1) {
+  if (currentStepIndex.value < steps.value.length - 1) {
     currentStepIndex.value++
     executeStep(currentStepIndex.value)
   }
@@ -81,7 +81,6 @@ function nextStep() {
 function prevStep() {
   if (currentStepIndex.value > 0) {
     currentStepIndex.value--
-    // 回退比较麻烦，简单处理：重置然后执行到前一步
     const target = currentStepIndex.value
     stack.value = []
     for (let i = 0; i <= target; i++) {
@@ -91,11 +90,11 @@ function prevStep() {
 }
 
 function executeStep(index: number) {
-  const step = steps[index]
-  
+  const step = steps.value[index]
+  // ... 逻辑不变
   if (step.action === 'push') {
     const newFrame: StackFrame = {
-      id: `frame-${Date.now()}`,
+      id: `frame-${Date.now()}-${Math.random()}`, // 避免 id 冲突
       funcName: step.funcName!,
       params: step.data?.params || {},
       returnAddr: step.data?.returnAddr || '?',
@@ -114,7 +113,6 @@ function executeStep(index: number) {
   } else if (step.action === 'update') {
     if (stack.value.length > 0) {
       const top = stack.value[stack.value.length - 1]
-      // 这里的 update 逻辑简化，直接合并属性
       if (step.data?.locals) {
         Object.assign(top.locals, step.data.locals)
       }
@@ -122,14 +120,13 @@ function executeStep(index: number) {
     }
   }
   
-  // 清除其他高亮
   stack.value.forEach((frame, idx) => {
     if (idx !== stack.value.length - 1) frame.isHighlight = false
   })
 }
 
 // 初始化
-reset()
+parseUserCodeAndGenSteps()
 
 // 布局相关
 const FRAME_WIDTH = 280
@@ -141,19 +138,30 @@ const FRAME_WIDTH = 280
       <!-- 左侧：代码区 -->
       <div class="code-panel">
         <h3>C 源代码</h3>
-        <div class="code-box">
-          <div 
-            v-for="(line, idx) in codeLines" 
-            :key="idx"
-            class="code-line"
-            :class="{ 'active': activeLine === idx }"
-          >
-            <span class="line-num">{{ idx }}</span>
-            <span class="line-content">{{ line }}</span>
+        
+        <!-- 可编辑代码区 -->
+        <div class="code-editor">
+          <textarea 
+            v-model="userCode" 
+            class="code-input"
+            spellcheck="false"
+            @change="parseUserCodeAndGenSteps"
+          ></textarea>
+          
+          <!-- 高亮遮罩 (仅用于显示行高亮) -->
+          <div class="code-overlay">
+             <div 
+              v-for="(line, idx) in codeLines" 
+              :key="idx"
+              class="code-line-highlight"
+              :class="{ 'active': activeLine === idx }"
+            ></div>
           </div>
         </div>
-        
+
         <div class="controls">
+          <button @click="parseUserCodeAndGenSteps" class="reload-btn">重载代码</button>
+          <div class="divider"></div>
           <button @click="prevStep" :disabled="currentStepIndex === 0">上一步</button>
           <div class="step-info">
             <span class="desc">{{ currentDesc }}</span>
@@ -264,35 +272,67 @@ h3 {
   color: var(--vp-c-text-1);
 }
 
-/* 代码区域 */
-.code-box {
+/* 代码编辑器样式 */
+.code-editor {
+  position: relative;
+  height: 300px;
   background: var(--vp-c-bg);
   border: 1px solid var(--vp-c-divider);
   border-radius: 4px;
+  overflow: hidden;
+}
+
+.code-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   padding: 12px;
   font-family: monospace;
   font-size: 14px;
-  line-height: 1.5;
-  overflow-x: auto;
+  line-height: 24px; /* 固定行高 */
+  background: transparent;
+  border: none;
+  resize: none;
+  z-index: 2;
+  color: var(--vp-c-text-1);
+  white-space: pre;
+  overflow: auto;
 }
 
-.code-line {
-  display: flex;
-  padding: 2px 4px;
+.code-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 12px 0; /* 上下 padding 保持一致 */
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-.code-line.active {
+.code-line-highlight {
+  height: 24px; /* 与 line-height 一致 */
+  width: 100%;
+}
+
+.code-line-highlight.active {
   background-color: var(--vp-c-brand-soft);
-  color: var(--vp-c-brand-1);
-  font-weight: bold;
 }
 
-.line-num {
-  width: 24px;
-  color: var(--vp-c-text-3);
-  text-align: right;
-  margin-right: 12px;
-  user-select: none;
+.reload-btn {
+  background-color: var(--vp-c-green-soft) !important;
+  color: var(--vp-c-green-1) !important;
+  border-color: var(--vp-c-green-1) !important;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--vp-c-divider);
+  margin: 0 4px;
 }
 
 .controls {
