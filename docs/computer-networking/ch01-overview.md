@@ -107,75 +107,413 @@
 
 ## 1.6 分组时延、丢包与吞吐量
 ### 1.6.1 四种节点时延
-节点时延（nodal delay）：
-- 处理时延（processing, dproc）
-- 排队时延（queueing, dqueue）
-- 传输时延（transmission, dtrans）
-- 传播时延（propagation, dprop）
-总时延：dnodal = dproc + dqueue + dtrans + dprop
+节点时延（nodal delay）由四个部分组成：
+$$ d_{nodal} = d_{proc} + d_{queue} + d_{trans} + d_{prop} $$
+
+```viz
+digraph NodalDelay {
+  rankdir=LR;
+  node [shape=box, fontname="Helvetica"];
+  bgcolor="transparent";
+  
+  Packet [label="分组到达", shape=plaintext];
+  Router [label="路由器 A"];
+  Link [label="链路"];
+  NextRouter [label="路由器 B"];
+
+  subgraph cluster_delay {
+    label="节点时延 (Nodal Delay)";
+    style=dashed;
+    color=gray;
+    
+    proc [label="1. 处理时延\n(检查头部, 决定去向)", style=filled, fillcolor="#e1f5fe"];
+    queue [label="2. 排队时延\n(等待输出链路空闲)", style=filled, fillcolor="#fff9c4"];
+    trans [label="3. 传输时延\n(推送到链路)", style=filled, fillcolor="#ffe0b2"];
+    prop [label="4. 传播时延\n(链路上传输)", style=filled, fillcolor="#e8f5e9"];
+  }
+
+  Packet -> proc;
+  proc -> queue;
+  queue -> trans;
+  trans -> prop [label="比特流"];
+  prop -> NextRouter;
+}
+```
+
+1.  **处理时延（Processing Delay, $d_{proc}$）**：
+    *   检查分组首部（是否有误码）。
+    *   决定将分组导向哪个输出链路（查表转发）。
+    *   通常是微秒（$\mu s$）级或更低。
+
+2.  **排队时延（Queueing Delay, $d_{queue}$）**：
+    *   分组在输出缓冲区中等待发送的时间。
+    *   取决于路由器的拥塞程度（流量强度）。
+    *   波动大：无拥塞时为 0，拥塞时可达毫秒（ms）级甚至丢包。
+
+3.  **传输时延（Transmission Delay, $d_{trans}$）**：
+    *   将所有分组比特推向链路所需要的时间。
+    *   取决于分组长度 $L$ 和链路传输速率 $R$（带宽）。
+    *   **公式**：$d_{trans}=\frac{L}{R}$
+
+4.  **传播时延（Propagation Delay, $d_{prop}$）**：
+    *   比特从链路一端传播到另一端所需的时间。
+    *   取决于物理链路长度 $d$ 和信号传播速度 $s$（光纤中约为 $2 \times 10^8$ m/s）。
+    *   **公式**：$d_{prop}=\frac{d}{s}$
 
 ### 1.6.2 传输时延与传播时延区别
-- 传输时延：dtrans = L / R（L 为分组长度，R 为链路速率）
-- 传播时延：dprop = d / s（d 为链路长度，s 为传播速率）
+初学者容易混淆这两个概念，类比**车队过收费站**：
+*   **传输时延**：整个车队经过收费站的时间（取决于车队长度和收费速度）。
+*   **传播时延**：车队离开收费站后，在高速公路上行驶到下一个收费站的时间（取决于路程和车速）。
 
-### 1.6.3 流量强度
-流量强度（traffic intensity）：La/R
-- 接近 1 时排队时延显著增大
-- 超过 1 时队列不稳定，平均时延趋于无穷
+### 1.6.3 流量强度与丢包
+*   **流量强度（Traffic Intensity）**：$\frac{La}{R}$
+    *   $L$：分组长度（bits）
+    *   $a$：分组平均到达率（pkt/s）
+    *   $R$：链路带宽（bps）
+    *   当 $\frac{La}{R} > 1$ 时，比特到达速率超过服务速率，队列将无限增长，导致**丢包（Packet Loss）**。
+*   **丢包**：队列缓冲有限，分组到达过快时溢出丢包，需要上层（如 TCP）重传或处理。
 
-### 1.6.4 丢包（packet loss）
-队列缓冲有限，分组到达过快时溢出丢包，需要上层重传或处理。
+### 1.6.4 吞吐量（Throughput）
+吞吐量指发送端与接收端之间传输数据的速率（bps）。
+1.  **瞬时吞吐量（Instantaneous Throughput）**：特定时间点的传输速率。
+2.  **平均吞吐量（Average Throughput）**：一段时间内的平均传输速率。
 
-### 1.6.5 端到端时延
-若有 n-1 个路由器且无拥塞：
-end-to-end delay = n * (dproc + dtrans + dprop)
+**瓶颈链路（Bottleneck Link）**：
+端到端的吞吐量取决于路径上**带宽最小**的那条链路。
+*   如果路径上有 $R_1, R_2, \dots, R_n$ 条链路，则端到端吞吐量 $\approx \min(R_1, R_2, \dots, R_n)$。
+*   就好比“木桶效应”，水管最细的地方决定了总流量。
 
-### 1.6.6 吞吐量（throughput）
-- 瞬时吞吐量（instantaneous）
-- 平均吞吐量（average）
-瓶颈链路决定端到端吞吐量。
-
-### 1.6.7 traceroute 与时延测量
+### 1.6.5 traceroute 与时延测量
 traceroute（Linux）/tracert（Windows）利用 TTL 逐跳测量时延。
 
-## 1.7 分层模型与服务关系
-### 1.7.1 分层思想
-分层提供模块化：
-- 每层为上一层提供服务
-- 下层变化对上层透明
 
-### 1.7.2 OSI 七层模型
-应用层、表示层、会话层、传输层、网络层、数据链路层、物理层。
+## 1.7 计算机网络体系结构
+网络体系结构（Network Architecture）是计算机网络的**各层及其协议的集合**。它定义了计算机网络应当提供哪些功能，但**不涉及具体的实现细节**（硬件/软件实现由厂商决定）。
 
-### 1.7.3 TCP/IP 与五层模型
-五层模型：应用、传输、网络、数据链路、物理。
+### 1.7.1 分层思想与优点
+为什么需要分层（Layering）？
+*   **复杂系统管理**：将庞大复杂的网络系统拆分为若干个较小的、易于管理的模块（层）。
+*   **模块化与透明性**：每层只通过接口向下层请求服务，向上层提供服务。下层的具体实现细节（如用光纤还是铜缆）对上层是**透明**的。
+*   **易于更新**：只要接口不变，替换某一层的实现技术（如物理层从 4G 升级到 5G）不会影响其他层。
 
-### 1.7.4 协议与服务
-- 协议：同层实体间规则
-- 服务：下层向上层提供能力
+### 1.7.2 协议与服务（核心概念）
+这是网络体系结构中最容易混淆的两个概念：
 
-### 1.7.5 封装与 PDU
-数据自上而下封装为：报文、报文段、数据报、帧、比特流。
+1.  **协议（Protocol）**：
+    *   **定义**：**对等实体**（Peer Entity，如主机 A 的传输层与主机 B 的传输层）之间进行通信的规则集合。
+    *   **三要素**：
+        *   **语法（Syntax）**：数据格式、编码、信号电平等（“怎么说”）。
+        *   **语义（Semantics）**：控制信息、动作响应、差错处理（“做什么”）。
+        *   **同步/时序（Timing）**：速度匹配、排序（“什么时候做”）。
+    *   **关系**：协议是水平的。
 
-## 1.8 数据通信基础：信号、调制、编码与容量
-### 1.8.1 信号与码元
-- 模拟信号（analog）：连续
-- 数字信号（digital）：离散
-- 码元（symbol）：固定时长波形，可能携带多个比特
-- 波特率（baud）：码元传输速率
+2.  **服务（Service）**：
+    *   **定义**：**下层向上层**提供的功能调用（通过层间接口 SAP）。
+    *   **关系**：服务是垂直的。
+    *   **原语**：请求（Request）、指示（Indication）、响应（Response）、确认（Confirm）。
 
-### 1.8.2 信道与通信方式
-- 单工、半双工、全双工
-- 带宽（bandwidth）：可通过的频带宽度或数据量
+**总结**：本层的**服务用户**（上层）只能看见服务而无法看见下面的**协议**。协议是“水平”的，服务是“垂直”的。
 
-### 1.8.3 基带调制与带通调制
-- 基带调制（coding）：NRZ、RZ、Manchester、差分 Manchester
-- 带通调制（carrier）：AM、FM、PM
+### 1.7.3 OSI 参考模型与 TCP/IP 模型
+```viz
+digraph Layers {
+  rankdir=TB;
+  newrank=true;
+  nodesep=1.5;
+  ranksep=0.4;
+  node [shape=box, fontname="Helvetica", width=2.8, height=0.7, style=filled];
+  edge [fontname="Helvetica", fontsize=10];
+  bgcolor="transparent";
 
-### 1.8.4 奈氏准则与香农公式
-奈氏（Nyquist）：理想低通信道最大码元速率 = 2W
-香农（Shannon）：C = W log2(1 + S/N)
-带宽或信噪比越大，容量越高。
+  // OSI Stack
+  subgraph cluster_osi {
+    label="OSI 七层模型";
+    style=dashed;
+    color="#90a4ae";
+    node [fillcolor="#e1f5fe", group=g_osi];
+
+    osi7 [label="7. 应用层 (Application)"];
+    osi6 [label="6. 表示层 (Presentation)"];
+    osi5 [label="5. 会话层 (Session)"];
+    osi4 [label="4. 传输层 (Transport)"];
+    osi3 [label="3. 网络层 (Network)"];
+    osi2 [label="2. 数据链路层 (Data Link)"];
+    osi1 [label="1. 物理层 (Physical)"];
+
+    // Vertical Backbone
+    edge [style=invis, weight=100];
+    osi7 -> osi6 -> osi5 -> osi4 -> osi3 -> osi2 -> osi1;
+  }
+
+  // TCP/IP Stack
+  subgraph cluster_tcpip {
+    label="TCP/IP 五层模型";
+    style=dashed;
+    color="#90a4ae";
+    node [fillcolor="#fff9c4", group=g_tcpip];
+
+    tcpip5 [label="5. 应用层 (Application)\n(合并 OSI 高三层)"];
+    tcpip4 [label="4. 传输层 (Transport)"];
+    tcpip3 [label="3. 网络层 (Network)"];
+    tcpip2 [label="2. 数据链路层 (Link)"];
+    tcpip1 [label="1. 物理层 (Physical)"];
+
+    // Vertical Backbone with spacer
+    edge [style=invis, weight=100];
+    tcpip5 -> tcpip4 [minlen=3]; // Reserve vertical space for mapping
+    tcpip4 -> tcpip3 -> tcpip2 -> tcpip1;
+  }
+
+  // Horizontal Alignment
+  { rank=same; osi7; tcpip5; }
+  { rank=same; osi4; tcpip4; }
+  { rank=same; osi3; tcpip3; }
+  { rank=same; osi2; tcpip2; }
+  { rank=same; osi1; tcpip1; }
+
+  // Mappings (Constraint=false to prevent layout distortion)
+  edge [style=dashed, color="#546e7a", constraint=false];
+  
+  // Merge Mappings
+  osi7 -> tcpip5;
+  osi6 -> tcpip5;
+  osi5 -> tcpip5;
+
+  // Direct Mappings
+  edge [dir=both, arrowtail=dot, arrowhead=dot];
+  osi4 -> tcpip4;
+  osi3 -> tcpip3;
+  osi2 -> tcpip2;
+  osi1 -> tcpip1;
+}
+```
+
+#### 1. OSI 七层参考模型（开放系统互连）
+由 ISO 提出，虽然理论完整但市场失败。
+1.  **应用层 (Application)**：为应用程序提供网络服务接口（HTTP, FTP）。
+2.  **表示层 (Presentation)**：处理数据格式、加密、解密、压缩（JPEG, ASCII）。
+3.  **会话层 (Session)**：建立、管理和终止会话（Session tokens）。
+4.  **传输层 (Transport)**：提供端到端的报文段传输、可靠性、流量控制（TCP, UDP）。
+5.  **网络层 (Network)**：负责分组的路由选择和转发（IP）。
+6.  **数据链路层 (Data Link)**：在相邻节点间传输帧，处理差错检测（Ethernet, WiFi）。
+7.  **物理层 (Physical)**：传输比特流，定义电压、接口形状、引脚（光纤, 双绞线）。
+
+#### 2. TCP/IP 五层模型（事实标准）
+实际互联网采用的模型，将 OSI 的高三层合并。
+1.  **应用层**：支持网络应用（HTTP, SMTP, DNS）。**PDU：报文 (Message)**。
+2.  **传输层**：进程间的数据传输。**PDU：报文段 (Segment)**。
+3.  **网络层**：主机间的路由与转发。**PDU：数据报 (Datagram)**。
+4.  **链路层**：相邻节点间的帧传输。**PDU：帧 (Frame)**。
+5.  **物理层**：比特传输。**PDU：比特 (Bit)**。
+
+#### 3. 比较
+*   **OSI**：先有模型后有协议，学术完善，但复杂且效率低。
+*   **TCP/IP**：先有协议后有模型，实用性强，但物理/链路层边界定义不严格。
+
+### 1.7.4 数据封装（Encapsulation）
+数据发送时自上而下封装，接收时自下而上解封装。
+
+```viz
+digraph Encapsulation {
+  rankdir=TD;
+  nodesep=0.5;
+  ranksep=0.6;
+  node [shape=record, fontname="Helvetica"];
+  edge [fontname="Helvetica", fontsize=10];
+  bgcolor="transparent";
+  
+  app [label="应用层\nData (Message)", style=filled, fillcolor="#fff9c4"];
+  trans [label="传输层\n{ Header | Data } (Segment)", style=filled, fillcolor="#ffe0b2"];
+  net [label="网络层\n{ IP Head | Header | Data } (Datagram)", style=filled, fillcolor="#ffccbc"];
+  link [label="链路层\n{ Frame Head | IP Head | Header | Data | Trailer } (Frame)", style=filled, fillcolor="#c8e6c9"];
+  phy [label="物理层\n10101010101... (Bits)", style=filled, fillcolor="#e1f5fe"];
+
+  app -> trans [label="  加 TCP 头"];
+  trans -> net [label="  加 IP 头"];
+  net -> link [label="  加 MAC 头/尾"];
+  link -> phy [label="  转比特流"];
+}
+```
+每一层都在上层数据的基础上加上自己的**首部（Header）**（链路层还要加尾部），形成本层的协议数据单元（PDU）。
+
+## 1.8 物理层通信基础：信号、编码与调制
+
+物理层的主要任务是确定与传输媒体的接口有关的一些特性（机械、电气、功能、过程），在传输媒体上透明地传输比特流。
+
+### 1.8.1 基本概念：信道、信号与带宽
+
+1.  **信号 (Signal)**：数据的电气或电磁表现。
+    *   **模拟信号 (Analog)**：代表消息的参数的取值是连续的（如人声）。
+    *   **数字信号 (Digital)**：代表消息的参数的取值是离散的（如计算机的 0/1）。
+2.  **信道 (Channel)**：信号传输的媒介。
+    *   **单工 (Simplex)**：只能单方向传输（如广播）。
+    *   **半双工 (Half-duplex)**：双方均可发送，但不能同时（如对讲机）。
+    *   **全双工 (Full-duplex)**：双方可同时发送和接收（如电话、以太网）。
+3.  **带宽 (Bandwidth)**：
+    *   在模拟信号领域：指信号具有的频带宽度，单位是赫兹 (Hz)。
+    *   在计算机网络领域：指通道传送数据的能力（最高数据率），单位是比特每秒 (bps)。
+
+### 1.8.2 码元、波特率与速率（重点）
+
+这是物理层最容易混淆的一组概念，必须严格区分。
+
+*   **码元 (Symbol)**：
+    *   在使用时间域（时域）的波形表示数字信号时，代表不同离散数值的基本波形。
+    *   简单来说，**码元就是“一个波形”**。这个波形可能代表 1 个比特（如高电平=1，低电平=0），也可能代表多个比特（如 4 种电平状态，每个波形代表 2 bit）。
+*   **波特率 (Baud Rate, B)**：
+    *   单位时间内传输的**码元个数**（即信号波形变换的次数）。单位是 **Baud (波特)**。
+    *   它反映了信号变化的快慢。
+*   **数据率 / 比特率 (Data Rate / Bit Rate, C)**：
+    *   单位时间内传输的**比特 (bit) 数**。单位是 **bps (bit/s)**。
+    *   它反映了信息传输的快慢。
+
+**二者的关系**：
+如果一个码元携带 $n$ 比特的信息（即码元有 $V = 2^n$ 种离散状态），则：
+$$ \text{数据率 } (bps) = \text{波特率 } (Baud) \times \log_2 V $$
+或者：
+$$ C = B \times n $$
+
+> **举例**：
+> *   **普通二进制**：1 个码元只有 2 种状态（0 或 1），携带 1 bit。此时 **波特率 = 比特率**。
+> *   **4 种相位调制 (QPSK)**：1 个码元有 4 种状态，携带 $\log_2 4 = 2$ bit。此时 **比特率 = 2 × 波特率**。
+> *   **16-QAM**：1 个码元有 16 种状态，携带 $\log_2 16 = 4$ bit。此时 **比特率 = 4 × 波特率**。
+
+### 1.8.3 编码 (Encoding) 与调制 (Modulation)
+
+数据（Data）转换为信号（Signal）的过程。
+*   **编码**：数字数据 $\rightarrow$ 数字信号（基带传输）。
+*   **调制**：数字数据 $\rightarrow$ 模拟信号（带通传输）。
+
+#### 1. 常见编码方式（基带传输）
+
+基带传输是将数字信号直接在信道上传输。为了解决同步、直流分量等问题，有多种编码方式。假设我们要传输比特流：**0 1 0 0 1 1 1 0 0 1 0 1**。
+
+##### (1) 不归零编码 (NRZ, Non-Return-to-Zero)
+*   **原理**：正电平代表 1，负电平（或零电平）代表 0。
+*   **优点**：实现简单，带宽利用率高。
+*   **缺点**：
+    *   **无法自同步**：如果连续传输长串的 0 或 1，信号电平保持不变，接收端无法判断到底有多少个比特。
+    *   **有直流分量**：不适合变压器耦合的链路。
+
+<div style="background: #fcfcfc; padding: 10px; border: 1px solid #eee; border-radius: 4px; overflow-x: auto;">
+<svg width="580" height="80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="grid" width="40" height="80" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 40 80" stroke="#eee" stroke-width="1" stroke-dasharray="4,2"/>
+    </pattern>
+  </defs>
+  <rect width="580" height="80" fill="url(#grid)" />
+  
+  <g font-family="Courier New, monospace" font-size="14" text-anchor="middle" fill="#555">
+    <text x="20" y="75">0</text>
+    <text x="60" y="75">1</text>
+    <text x="100" y="75">0</text>
+    <text x="140" y="75">0</text>
+    <text x="180" y="75">1</text>
+    <text x="220" y="75">1</text>
+    <text x="260" y="75">1</text>
+    <text x="300" y="75">0</text>
+    <text x="340" y="75">0</text>
+    <text x="380" y="75">1</text>
+    <text x="420" y="75">0</text>
+    <text x="460" y="75">1</text>
+  </g>
+  
+  <path d="M 0 50 L 40 50 L 40 20 L 80 20 L 80 50 L 160 50 L 160 20 L 280 20 L 280 50 L 360 50 L 360 20 L 400 20 L 400 50 L 440 50 L 440 20 L 480 20" stroke="#2196F3" stroke-width="2" fill="none"/>
+    
+  <text x="520" y="30" font-size="10" fill="#2196F3">High (1)</text>
+  <text x="520" y="55" font-size="10" fill="#2196F3">Low (0)</text>
+</svg>
+</div>
+
+##### (2) 曼彻斯特编码 (Manchester Encoding)
+*   **原理**：将一个码元周期分为两半。
+    *   **0**：前半周期为高，后半周期为低（**向下跳变**）。
+    *   **1**：前半周期为低，后半周期为高（**向上跳变**）。
+    *   *(注：此处采用 G.E.Thomas 标准，以太网 IEEE 802.3 标准正好相反，但核心都是**中间必有跳变**)*
+*   **优点**：
+    *   **自同步**：位中间的跳变既作为数据，也作为时钟信号。
+    *   **无直流分量**。
+*   **缺点**：占用频带宽度是 NRZ 的两倍（因为信号变化频率变快了）。**以太网**常采用此方式。
+
+<div style="background: #fcfcfc; padding: 10px; border: 1px solid #eee; border-radius: 4px; overflow-x: auto;">
+<svg width="580" height="80" xmlns="http://www.w3.org/2000/svg">
+  <rect width="580" height="80" fill="url(#grid)" />
+  
+  <g font-family="Courier New, monospace" font-size="14" text-anchor="middle" fill="#555">
+    <text x="20" y="75">0</text>
+    <text x="60" y="75">1</text>
+    <text x="100" y="75">0</text>
+    <text x="140" y="75">0</text>
+    <text x="180" y="75">1</text>
+    <text x="220" y="75">1</text>
+    <text x="260" y="75">1</text>
+    <text x="300" y="75">0</text>
+    <text x="340" y="75">0</text>
+    <text x="380" y="75">1</text>
+    <text x="420" y="75">0</text>
+    <text x="460" y="75">1</text>
+  </g>
+  
+  <path d="M 0 20 L 20 20 L 20 50 L 40 50 L 60 50 L 60 20 L 80 20 L 80 20 L 100 20 L 100 50 L 120 50 L 120 20 L 140 20 L 140 50 L 160 50 L 160 50 L 180 50 L 180 20 L 200 20 L 200 50 L 220 50 L 220 20 L 240 20 L 240 50 L 260 50 L 260 20 L 280 20 L 280 20 L 300 20 L 300 50 L 320 50 L 320 20 L 340 20 L 340 50 L 360 50 L 360 50 L 380 50 L 380 20 L 400 20 L 400 20 L 420 20 L 420 50 L 440 50 L 440 50 L 460 50 L 460 20 L 480 20" stroke="#4CAF50" stroke-width="2" fill="none"/>
+
+</svg>
+</div>
+
+##### (3) 差分曼彻斯特编码 (Differential Manchester)
+*   **原理**：
+    *   **位中间**：始终有跳变（用于同步）。
+    *   **位开始**：
+        *   有跳变 $\rightarrow$ 代表 **0**。
+        *   无跳变 $\rightarrow$ 代表 **1**。
+*   **优点**：抗干扰能力比曼彻斯特更强。常用于 **Token Ring (令牌环网)**。
+
+<div style="background: #fcfcfc; padding: 10px; border: 1px solid #eee; border-radius: 4px; overflow-x: auto;">
+<svg width="580" height="80" xmlns="http://www.w3.org/2000/svg">
+  <rect width="580" height="80" fill="url(#grid)" />
+  
+  <g font-family="Courier New, monospace" font-size="14" text-anchor="middle" fill="#555">
+    <text x="20" y="75">0</text>
+    <text x="60" y="75">1</text>
+    <text x="100" y="75">0</text>
+    <text x="140" y="75">0</text>
+    <text x="180" y="75">1</text>
+    <text x="220" y="75">1</text>
+    <text x="260" y="75">1</text>
+    <text x="300" y="75">0</text>
+    <text x="340" y="75">0</text>
+    <text x="380" y="75">1</text>
+    <text x="420" y="75">0</text>
+    <text x="460" y="75">1</text>
+  </g>
+  
+  <path d="M 0 50 L 0 20 L 20 20 L 20 50 L 40 50 L 60 50 L 60 20 L 80 20 L 80 50 L 100 50 L 100 20 L 120 20 L 120 50 L 140 50 L 140 20 L 160 20 L 180 20 L 180 50 L 200 50 L 220 50 L 220 20 L 240 20 L 260 20 L 260 50 L 280 50 L 280 20 L 300 20 L 300 50 L 320 50 L 320 20 L 340 20 L 340 50 L 360 50 L 380 50 L 380 20 L 400 20 L 400 50 L 420 50 L 420 20 L 440 20 L 460 20 L 460 50 L 480 50" stroke="#9C27B0" stroke-width="2" fill="none"/>
+</svg>
+</div>
+
+#### 2. 常见调制方式（带通传输）
+为了让数字信号在模拟信道（如电话线、无线电）上传输，需要将数字信号调制到载波上。
+*   **调幅 (ASK)**：振幅随数字变化（容易受干扰）。
+*   **调频 (FSK)**：频率随数字变化。
+*   **调相 (PSK)**：相位随数字变化（如 0 度代表 0，180 度代表 1）。
+*   **正交振幅调制 (QAM)**：**振幅 + 相位** 结合。例如 16-QAM 有 16 种状态（12 种相位 + 3 种振幅组合），一个码元传 4 bit，效率极高。
+
+### 1.8.4 信道的极限容量
+为了提高速率，我们希望波特率无限高，或者码元状态无限多。但物理规律限制了这两点：
+
+1.  **奈氏准则 (Nyquist Criterion)**：
+    *   针对**无噪声**的理想信道。
+    *   限制了**码元传输速率**（带宽受限，波特率不能无限高，否则会出现码间串扰）。
+    *   公式：$C_{max} = 2W \log_2 V$
+        *   $W$：带宽 (Hz)
+        *   $V$：码元离散电平数目
+
+2.  **香农公式 (Shannon Theorem)**：
+    *   针对**有噪声**的真实信道。
+    *   限制了**信息传输速率**（信噪比太低，分不清太多电平）。
+    *   公式：$C_{max} = W \log_2 (1 + S/N)$
+        *   $S/N$：信噪比（注意通常给出 dB，需换算：$dB = 10 \log_{10}(S/N)$）。
+    *   **结论**：要提高容量，要么增加带宽 $W$，要么提高信噪比 $S/N$。
 
 ## 1.9 互联网发展简史
 ### 1.9.1 1960s–1970s

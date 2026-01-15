@@ -36,7 +36,7 @@ hero:
     icon="🔢" 
     title="高等数学" 
     details="Advanced Mathematics"
-    type="pending"
+    type=""
   />
 </SubjectCardContainer>
 
@@ -51,20 +51,19 @@ hero:
     icon="🌳" 
     title="数据结构" 
     details="Data Structure" 
-    type="pending"
+    type=""
   />
   <SubjectCard 
     icon="⚙️" 
     title="计算机组成原理" 
     details="Computer Organization"
-    type="pending"
+    type=""
   />
   <SubjectCard 
     icon="🌐" 
     title="计算机网络" 
     details="Computer Networking"
     link="/computer-networking/"
-    type="progress"
   />
 </SubjectCardContainer>
 

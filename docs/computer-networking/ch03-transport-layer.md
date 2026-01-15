@@ -115,16 +115,115 @@ LastByteSent - LastByteAcked ≤ rwnd
 防止接收端缓冲溢出。
 
 ### 3.6.2 三次握手（3-way handshake）
-1) 客户端发送 SYN（序号 x）
-2) 服务器回复 SYN+ACK（序号 y，确认 x+1）
-3) 客户端回复 ACK（确认 y+1）
+
+TCP 连接建立过程称为“三次握手”，旨在同步双方的初始序列号（ISN）并交换窗口大小等参数。
+
+**交互流程：**
+
+1.  **SYN (Client → Server)**:
+    *   客户端随机选择初始序列号 `client_isn`。
+    *   设置标志位 `SYN=1`，`seq=client_isn`。
+    *   客户端进入 `SYN_SENT` 状态。
+
+2.  **SYN + ACK (Server → Client)**:
+    *   服务端收到 SYN，分配缓存和变量。
+    *   服务端随机选择初始序列号 `server_isn`。
+    *   设置标志位 `SYN=1`，`ACK=1`。
+    *   确认号 `ack=client_isn + 1`，序列号 `seq=server_isn`。
+    *   服务端进入 `SYN_RCVD` 状态。
+
+3.  **ACK (Client → Server)**:
+    *   客户端收到 SYN+ACK，分配缓存和变量。
+    *   设置标志位 `ACK=1`，`SYN=0`。
+    *   确认号 `ack=server_isn + 1`，序列号 `seq=client_isn + 1`。
+    *   此报文段可以携带数据。
+    *   双方进入 `ESTABLISHED` 状态。
+
+**时序图：**
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+    
+    Note over C: CLOSED
+    Note over S: LISTEN
+
+    C->>S: SYN=1, seq=x
+    Note over C: SYN_SENT
+    
+    S->>C: SYN=1, ACK=1, seq=y, ack=x+1
+    Note over S: SYN_RCVD
+
+    C->>S: ACK=1, seq=x+1, ack=y+1
+    Note over C: ESTABLISHED
+    Note over S: ESTABLISHED
+```
+
+> **为什么是三次？**
+> *   防止已失效的连接请求报文段突然传送到服务端，导致服务端错误建立连接。
+> *   确保双向信道的收发能力都得到确认（Client 发收正常，Server 收发正常）。
 
 ### 3.6.3 四次挥手（4-way handshake）
-关闭连接过程：
-- 一方发送 FIN
-- 另一方 ACK
-- 另一方发送 FIN
-- 最终 ACK
+
+TCP 连接释放过程称为“四次挥手”，因为 TCP 是全双工的，每个方向的连接需要单独关闭。
+
+**交互流程：**
+
+1.  **FIN (Client → Server)**:
+    *   客户端应用进程调用关闭，发送连接释放报文。
+    *   设置标志位 `FIN=1`，`seq=u`。
+    *   客户端进入 `FIN_WAIT_1` 状态，停止发送数据（但可接收）。
+
+2.  **ACK (Server → Client)**:
+    *   服务端收到 FIN，发送确认。
+    *   设置标志位 `ACK=1`，`ack=u+1`，`seq=v`。
+    *   服务端进入 `CLOSE_WAIT` 状态，客户端进入 `FIN_WAIT_2`。
+    *   此时处于“半关闭”状态：客户端无数据发送，但服务端仍可发送数据。
+
+3.  **FIN (Server → Client)**:
+    *   服务端数据发送完毕，应用进程关闭连接。
+    *   设置标志位 `FIN=1`，`ACK=1`，`seq=w`，`ack=u+1`。
+    *   服务端进入 `LAST_ACK` 状态。
+
+4.  **ACK (Client → Server)**:
+    *   客户端收到 FIN，发送确认。
+    *   设置标志位 `ACK=1`，`ack=w+1`，`seq=u+1`。
+    *   客户端进入 `TIME_WAIT` 状态，等待 `2MSL` 后关闭。
+    *   服务端收到 ACK 后进入 `CLOSED` 状态。
+
+**时序图：**
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    Note over C,S: ESTABLISHED
+
+    C->>S: FIN=1, seq=u
+    Note over C: FIN_WAIT_1
+    
+    S->>C: ACK=1, ack=u+1, seq=v
+    Note over S: CLOSE_WAIT
+    Note over C: FIN_WAIT_2
+
+    Note right of S: (Server may send remaining data)
+
+    S->>C: FIN=1, ACK=1, seq=w, ack=u+1
+    Note over S: LAST_ACK
+
+    C->>S: ACK=1, ack=w+1, seq=u+1
+    Note over C: TIME_WAIT
+    Note over S: CLOSED
+
+    Note over C: Wait 2MSL
+    Note over C: CLOSED
+```
+
+> **为什么需要 TIME_WAIT (2MSL)？**
+> 1.  **保证最后一个 ACK 到达**：如果 ACK 丢失，服务端重传 FIN，客户端需在 TIME_WAIT 中响应重传的 FIN。
+> 2.  **防止旧报文干扰**：等待 2MSL 可确保本连接产生的所有报文段都从网络中消失，避免干扰下一个新连接。
 
 ## 3.7 拥塞控制与 TCP 拥塞控制
 ### 3.7.1 拥塞的原因与代价
