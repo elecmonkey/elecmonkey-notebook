@@ -7,6 +7,7 @@ import './print.css'
 import SubjectCard from './components/SubjectCard.vue'
 import SubjectCardContainer from './components/SubjectCardContainer.vue'
 import PrintButtons from './components/PrintButtons.vue'
+import RegexToNfa from './components/compiler-principles/RegexToNfa.vue'
 
 export default {
   extends: Theme,
@@ -19,5 +20,6 @@ export default {
     // 注册组件
     app.component('SubjectCard', SubjectCard)
     app.component('SubjectCardContainer', SubjectCardContainer)
+    app.component('RegexToNfa', RegexToNfa)
   }
 }

@@ -718,3 +718,9 @@ flowchart LR
 
 - 报错 + 跳过非法字符
 - 或返回 `ERROR` token 交给语法分析器处理
+
+## 可视化：Thompson 构造法 (Regex to NFA)
+
+输入正则表达式（支持 `|`, `*`, `()`)，自动生成对应的 NFA。
+
+<RegexToNfa />
