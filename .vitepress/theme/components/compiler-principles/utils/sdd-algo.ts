@@ -146,6 +146,24 @@ export function parseLR1(
     } else if (/\d+/.test(currentToken) && stateActions.has('digit')) {
       matchSymbol = 'digit';
       action = stateActions.get('digit')![0];
+    } else if (/^[a-zA-Z_]\w*$/.test(currentToken) && stateActions.has('c')) {
+      // 特殊情况：如果 input 是 'c'，而 grammar 中就是 'c'，那会命中上面的 stateActions.has('c')
+      // 但如果用户把 'c' 当做通配符？通常不会，文法里的终结符就是字面量。
+      // 问题在于：如果 grammar 里写的是 'c'，input 也是 'c'，那么 has('c') 就会命中。
+      // 但如果 grammar 里写的是 'id' 或 'char'，input 是 'c'，这里就需要映射。
+      
+      // 针对用户反馈的 case: S -> c，输入 (c,c)
+      // Grammar terminals: '(', ')', 'c', ','
+      // Input tokens: '(', 'c', ',', 'c', ')'
+      // 当 currentToken 是 'c' 时，stateActions 应该有 'c' 的动作。
+      
+      // 现在的逻辑：
+      // 1. stateActions.has('c') -> true -> action found.
+      // 2. 如果 input 是 'x'，grammar 里只有 'c'，那就会 fail。
+      // 3. 如果 grammar 里有 'id'，则匹配。
+      
+      matchSymbol = 'id';
+      action = stateActions.get('id')![0];
     } else if (/^[a-zA-Z_]\w*$/.test(currentToken) && stateActions.has('id')) {
       matchSymbol = 'id';
       action = stateActions.get('id')![0];

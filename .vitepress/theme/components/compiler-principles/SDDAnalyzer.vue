@@ -160,8 +160,8 @@ function parse() {
     
     // 简单的 token 分割：按空格分，保留数字作为一个 token，符号作为一个 token
     // 这里为了适配 '3 * 5' 这种，我们需要更智能一点的 tokenizer
-    // 简易 Tokenizer: 匹配数字、ID或单字符符号
-    const rawTokens = inputStr.value.match(/\d+|[a-zA-Z_]\w*|[+\-*/()]/g)
+    // 简易 Tokenizer: 匹配数字、ID、常见双字符运算符、或单字符符号
+    const rawTokens = inputStr.value.match(/\d+|[a-zA-Z_]\w*|==|!=|<=|>=|->|:=|[^\s\w]/g)
     if (!rawTokens) {
       errorMsg.value = '无法识别输入串'
       return
