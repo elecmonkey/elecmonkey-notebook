@@ -335,3 +335,12 @@ A → α · β
 2. **提取左公因子** (Left Factoring)
 
 <GrammarTransformer />
+
+## 可视化：LR(1) 分析表生成器
+
+输入文法，自动完成以下步骤：
+1. 构造 LR(1) 项目集族 (Canonical Collection)
+2. 生成 LR(1) 分析表 (ACTION / GOTO)
+3. 识别 Shift/Reduce 和 Reduce/Reduce 冲突
+
+<LR1Analyzer />
