@@ -1,9 +1,10 @@
 import { defineConfig } from 'vitepress'
 import sidebar from './sidebar'
 import { MermaidMarkdown, MermaidPlugin } from 'vitepress-plugin-mermaid';
+import { withViz } from 'vitepress-plugin-viz'
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+export default withViz(defineConfig({
   title: "EM Notebook",
   lang: "zh-CN",
   // 大标题
@@ -60,4 +61,4 @@ export default defineConfig({
       noExternal: ['mermaid'],
     },
   },
-})
+}))

@@ -24,6 +24,9 @@ importers:
       vitepress-plugin-mermaid:
         specifier: ^2.0.17
         version: 2.0.17(mermaid@11.12.2)(vitepress@2.0.0-alpha.12(@types/node@22.13.17)(lightningcss@1.30.2)(markdown-it-mathjax3@4.3.2)(postcss@8.5.6))
+      vitepress-plugin-viz:
+        specifier: ^1.0.0-beta.7
+        version: 1.0.0-beta.7(@viz-js/viz@3.24.0)(vitepress@2.0.0-alpha.12(@types/node@22.13.17)(lightningcss@1.30.2)(markdown-it-mathjax3@4.3.2)(postcss@8.5.6))
 
 packages:
 
@@ -1414,6 +1417,12 @@ packages:
     peerDependencies:
       mermaid: 10 || 11
       vitepress: ^1.0.0 || ^1.0.0-alpha
+
+  vitepress-plugin-viz@1.0.0-beta.7:
+    resolution: {integrity: sha512-RAHjMcs2GPmN7l9d6jAbIcPugWpOnEZ2mrtVPutQYpmHC1ZiJA1h6mRJy/oNW5o3sKQvulbT4TJJSjIh4MMGfA==}
+    peerDependencies:
+      '@viz-js/viz': ^3.24.0
+      vitepress: ^1.0.0 || ^2.0.0-0
 
   vitepress@2.0.0-alpha.12:
     resolution: {integrity: sha512-yZwCwRRepcpN5QeAhwSnEJxS3I6zJcVixqL1dnm6km4cnriLpQyy2sXQDsE5Ti3pxGPbhU51nTMwI+XC1KNnJg==}
@@ -2881,6 +2890,11 @@ snapshots:
       vitepress: 2.0.0-alpha.12(@types/node@22.13.17)(lightningcss@1.30.2)(markdown-it-mathjax3@4.3.2)(postcss@8.5.6)
     optionalDependencies:
       '@mermaid-js/mermaid-mindmap': 9.3.0
+
+  vitepress-plugin-viz@1.0.0-beta.7(@viz-js/viz@3.24.0)(vitepress@2.0.0-alpha.12(@types/node@22.13.17)(lightningcss@1.30.2)(markdown-it-mathjax3@4.3.2)(postcss@8.5.6)):
+    dependencies:
+      '@viz-js/viz': 3.24.0
+      vitepress: 2.0.0-alpha.12(@types/node@22.13.17)(lightningcss@1.30.2)(markdown-it-mathjax3@4.3.2)(postcss@8.5.6)
 
   vitepress@2.0.0-alpha.12(@types/node@22.13.17)(lightningcss@1.30.2)(markdown-it-mathjax3@4.3.2)(postcss@8.5.6):
     dependencies:
