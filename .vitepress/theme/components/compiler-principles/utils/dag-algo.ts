@@ -182,6 +182,32 @@ export function buildDAG(tacs: TAC[], enableAssociativeFolding: boolean = false)
       return;
     }
 
+    // Algebraic Identities (代数恒等式)
+    // x+0=x, 0+x=x, x*1=x, 1*x=x, x-0=x, x/1=x, x*0=0, 0*x=0
+    if (['+', '-', '*', '/'].includes(tac.op)) {
+      let simplifiedNode: DAGNode | null = null;
+      const isConst = (n: DAGNode, v: number) => n.isConstant && n.constValue === v;
+
+      if (tac.op === '+') {
+        if (isConst(rightNode, 0)) simplifiedNode = leftNode;
+        else if (isConst(leftNode, 0)) simplifiedNode = rightNode;
+      } else if (tac.op === '*') {
+        if (isConst(rightNode, 1)) simplifiedNode = leftNode;
+        else if (isConst(leftNode, 1)) simplifiedNode = rightNode;
+        else if (isConst(rightNode, 0)) simplifiedNode = rightNode; // Result is 0
+        else if (isConst(leftNode, 0)) simplifiedNode = leftNode;   // Result is 0
+      } else if (tac.op === '-') {
+        if (isConst(rightNode, 0)) simplifiedNode = leftNode;
+      } else if (tac.op === '/') {
+        if (isConst(rightNode, 1)) simplifiedNode = leftNode;
+      }
+
+      if (simplifiedNode) {
+        varMap.set(tac.result, simplifiedNode);
+        return; // Skip creating new node
+      }
+    }
+
     // Associative Constant Folding (Advanced)
     // Handle (A op C1) op C2 -> A op (C1 op C2) or (C1 op A) op C2 -> A op (C1 op C2)
     // Only for + and *
