@@ -124,8 +124,8 @@ function infixToPostfix(regex: string): string {
   return output;
 }
 
-// 构造 NFA
-export function buildNFA(regex: string): NFAFragment | null {
+// 构造 NFA (支持标准版和简化版)
+export function buildNFA(regex: string, simplified: boolean = false): NFAFragment | null {
   stateIdCounter = 0; // Reset counter
   const preprocessed = preprocessRegex(regex);
   const postfix = infixToPostfix(preprocessed);
@@ -137,43 +137,110 @@ export function buildNFA(regex: string): NFAFragment | null {
       const right = stack.pop()!;
       const left = stack.pop()!;
       
-      // 连接: left.end -> right.start (epsilon)
-      addTransition(left.end, right.start, 'ε');
-      left.end.isAccepting = false;
-      
-      stack.push({ start: left.start, end: right.end });
+      if (simplified) {
+        // Simplified Concatenation: Merge left.end and right.start
+        // Move all outgoing transitions from right.start to left.end
+        right.start.transitions.forEach((targets, symbol) => {
+           targets.forEach(target => {
+             addTransition(left.end, target, symbol);
+           });
+        });
+        
+        // Update newEnd if right part was effectively empty/looped on start
+        let newEnd = right.end;
+        if (right.end === right.start) {
+            newEnd = left.end;
+        }
+        
+        left.end.isAccepting = false; 
+        stack.push({ start: left.start, end: newEnd });
+      } else {
+        // 标准版连接: left.end -> right.start (epsilon)
+        addTransition(left.end, right.start, 'ε');
+        left.end.isAccepting = false;
+        stack.push({ start: left.start, end: right.end });
+      }
+
     } else if (char === '|') {
       if (stack.length < 2) throw new Error('Invalid regex: missing operand for union (|)');
       const right = stack.pop()!;
       const left = stack.pop()!;
       
-      const newStart = createState();
-      const newEnd = createState(true);
-      
-      addTransition(newStart, left.start, 'ε');
-      addTransition(newStart, right.start, 'ε');
-      addTransition(left.end, newEnd, 'ε');
-      addTransition(right.end, newEnd, 'ε');
-      
-      left.end.isAccepting = false;
-      right.end.isAccepting = false;
-      
-      stack.push({ start: newStart, end: newEnd });
+      let newStart: NFAState, newEnd: NFAState;
+
+      if (simplified) {
+        // Simplified Union: Common start and end states
+        newStart = createState();
+        newEnd = createState(true);
+        
+        // Merge starts: Copy transitions from left/right start to newStart
+        left.start.transitions.forEach((targets, symbol) => {
+            targets.forEach(t => addTransition(newStart, t, symbol));
+        });
+        right.start.transitions.forEach((targets, symbol) => {
+            targets.forEach(t => addTransition(newStart, t, symbol));
+        });
+        
+        // Handle ends: Add epsilon transitions to newEnd (hard to merge incoming edges)
+        addTransition(left.end, newEnd, 'ε');
+        addTransition(right.end, newEnd, 'ε');
+        
+        left.end.isAccepting = false;
+        right.end.isAccepting = false;
+        
+        stack.push({ start: newStart, end: newEnd });
+      } else {
+        // 标准版并
+        newStart = createState();
+        newEnd = createState(true);
+        
+        addTransition(newStart, left.start, 'ε');
+        addTransition(newStart, right.start, 'ε');
+        addTransition(left.end, newEnd, 'ε');
+        addTransition(right.end, newEnd, 'ε');
+        
+        left.end.isAccepting = false;
+        right.end.isAccepting = false;
+        
+        stack.push({ start: newStart, end: newEnd });
+      }
+
     } else if (char === '*') {
       if (stack.length < 1) throw new Error('Invalid regex: missing operand for closure (*)');
       const nfa = stack.pop()!;
       
-      const newStart = createState();
-      const newEnd = createState(true);
+      let newStart: NFAState, newEnd: NFAState;
       
-      addTransition(newStart, nfa.start, 'ε');
-      addTransition(newStart, newEnd, 'ε');
-      addTransition(nfa.end, nfa.start, 'ε');
-      addTransition(nfa.end, newEnd, 'ε');
-      
-      nfa.end.isAccepting = false;
-      
-      stack.push({ start: newStart, end: newEnd });
+      if (simplified) {
+         // Simplified Closure: Keep standard loop structure but minimize ε-transitions if possible
+         // Merging start/end nodes in closure is complex due to loopback logic.
+         // We maintain the standard structure here as it is robust.
+         newStart = createState();
+         newEnd = createState(true);
+         
+         addTransition(newStart, nfa.start, 'ε');
+         addTransition(newStart, newEnd, 'ε');
+         addTransition(nfa.end, nfa.start, 'ε');
+         addTransition(nfa.end, newEnd, 'ε');
+         
+         nfa.end.isAccepting = false;
+         
+         stack.push({ start: newStart, end: newEnd });
+      } else {
+        // 标准版闭包
+        newStart = createState();
+        newEnd = createState(true);
+        
+        addTransition(newStart, nfa.start, 'ε');
+        addTransition(newStart, newEnd, 'ε');
+        addTransition(nfa.end, nfa.start, 'ε');
+        addTransition(nfa.end, newEnd, 'ε');
+        
+        nfa.end.isAccepting = false;
+        
+        stack.push({ start: newStart, end: newEnd });
+      }
+
     } else {
       // Literal
       const start = createState();

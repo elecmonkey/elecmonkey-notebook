@@ -5,6 +5,7 @@ import { buildNFA, nfaToDot } from './utils/thompson'
 
 const regexInput = ref('a*|b')
 const direction = ref<'LR' | 'TD'>('LR')
+const isSimplified = ref(false)
 const errorMsg = ref('')
 const containerRef = ref<HTMLElement | null>(null)
 
@@ -16,7 +17,7 @@ async function updateDiagram() {
   }
 
   try {
-    const nfa = buildNFA(regexInput.value)
+    const nfa = buildNFA(regexInput.value, isSimplified.value)
     if (!nfa) {
       errorMsg.value = 'Invalid Regex or empty result'
       return
@@ -51,6 +52,11 @@ function toggleDirection() {
   updateDiagram()
 }
 
+function toggleMode() {
+  isSimplified.value = !isSimplified.value
+  updateDiagram()
+}
+
 onMounted(() => {
   updateDiagram()
 })
@@ -72,9 +78,14 @@ onMounted(() => {
         <button class="toggle-btn" @click="toggleDirection">
           Direction: {{ direction === 'LR' ? 'Left to Right' : 'Top to Down' }}
         </button>
+        <button class="toggle-btn" @click="toggleMode" :class="{ active: isSimplified }">
+          Mode: {{ isSimplified ? 'Simplified (Compact)' : 'Standard (Thompson)' }}
+        </button>
       </div>
       <div class="hint">
         Supports: <code>( )</code>, <code>|</code> (union), <code>*</code> (closure), concatenation (implicit).
+        <br>
+        <strong>Simplified Mode:</strong> Reduces ε-transitions by merging states where possible (e.g. 1--a-->2 instead of 1--ε-->1'--a-->2'--ε-->2).
       </div>
     </div>
 
@@ -142,6 +153,11 @@ onMounted(() => {
   white-space: nowrap;
   height: 38px; /* Match input height */
   transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  background-color: var(--vp-c-brand-1);
+  color: white;
 }
 
 .toggle-btn:hover {

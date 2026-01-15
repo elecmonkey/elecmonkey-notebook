@@ -6,6 +6,7 @@ import { subsetConstruction, dfaToDot, ConstructionStep } from './utils/subset-c
 
 const regexInput = ref('(a|b)*abb')
 const direction = ref<'LR' | 'TD'>('LR')
+const isSimplified = ref(false)
 const constructionSteps = ref<ConstructionStep[]>([])
 const errorMsg = ref('')
 const nfaContainerRef = ref<HTMLElement | null>(null)
@@ -22,7 +23,7 @@ async function updateDiagram() {
 
   try {
     // 1. Build NFA
-    const nfa = buildNFA(regexInput.value)
+    const nfa = buildNFA(regexInput.value, isSimplified.value)
     if (!nfa) {
       errorMsg.value = 'Invalid Regex or empty result'
       return
@@ -69,6 +70,11 @@ function toggleDirection() {
   updateDiagram()
 }
 
+function toggleMode() {
+  isSimplified.value = !isSimplified.value
+  updateDiagram()
+}
+
 onMounted(() => {
   updateDiagram()
 })
@@ -90,9 +96,14 @@ onMounted(() => {
         <button class="toggle-btn" @click="toggleDirection">
           Direction: {{ direction === 'LR' ? 'Left to Right' : 'Top to Down' }}
         </button>
+        <button class="toggle-btn" @click="toggleMode" :class="{ active: isSimplified }">
+          Mode: {{ isSimplified ? 'Simplified (Compact)' : 'Standard (Thompson)' }}
+        </button>
       </div>
       <div class="hint">
         Supports: <code>( )</code>, <code>|</code> (union), <code>*</code> (closure), concatenation (implicit).
+        <br>
+        <strong>Simplified Mode:</strong> Merges states during NFA construction to reduce ε-transitions, which simplifies the subsequent Subset Construction.
       </div>
     </div>
 
@@ -203,6 +214,11 @@ onMounted(() => {
   white-space: nowrap;
   height: 38px;
   transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  background-color: var(--vp-c-brand-1);
+  color: white;
 }
 
 .toggle-btn:hover {
