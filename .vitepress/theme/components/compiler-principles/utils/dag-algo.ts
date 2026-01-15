@@ -74,7 +74,7 @@ export function parseTACBlock(input: string): TAC[] {
 }
 
 // 2. Build DAG
-export function buildDAG(tacs: TAC[]): DAGResult {
+export function buildDAG(tacs: TAC[], enableAssociativeFolding: boolean = false): DAGResult {
   const nodes: DAGNode[] = [];
   let nodeIdCounter = 1;
   
@@ -180,6 +180,33 @@ export function buildDAG(tacs: TAC[]): DAGResult {
       const constNode = getOrCreateLeaf(resVal.toString());
       varMap.set(tac.result, constNode);
       return;
+    }
+
+    // Associative Constant Folding (Advanced)
+    // Handle (A op C1) op C2 -> A op (C1 op C2) or (C1 op A) op C2 -> A op (C1 op C2)
+    // Only for + and *
+    if (enableAssociativeFolding && (tac.op === '+' || tac.op === '*') && rightNode.isConstant && rightNode.constValue !== undefined) {
+      if (leftNode.op === tac.op) {
+        // Case 1: (A op C1) op C2
+        if (leftNode.right && leftNode.right.isConstant && leftNode.right.constValue !== undefined) {
+          const c1 = leftNode.right.constValue;
+          const c2 = rightNode.constValue;
+          const newC = tac.op === '+' ? c1 + c2 : c1 * c2;
+          
+          // Update operands: New Left is A, New Right is (C1 op C2)
+          leftNode = leftNode.left!; 
+          rightNode = getOrCreateLeaf(newC.toString());
+        }
+        // Case 2: (C1 op A) op C2
+        else if (leftNode.left && leftNode.left.isConstant && leftNode.left.constValue !== undefined) {
+           const c1 = leftNode.left.constValue;
+           const c2 = rightNode.constValue;
+           const newC = tac.op === '+' ? c1 + c2 : c1 * c2;
+           
+           leftNode = leftNode.right!; 
+           rightNode = getOrCreateLeaf(newC.toString());
+        }
+      }
     }
     
     // Value Numbering check

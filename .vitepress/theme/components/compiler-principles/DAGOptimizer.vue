@@ -169,6 +169,10 @@ function analyze(): boolean {
 }
 
 function optimize() {
+  // Re-build DAG with advanced optimizations (associative folding) enabled
+  const result = buildDAG(tacs.value, true)
+  dagNodes.value = result.nodes
+
   // Parse live vars
   const liveOut = liveVarsInput.value.split(/[,，\s]+/).filter(s => s)
   
