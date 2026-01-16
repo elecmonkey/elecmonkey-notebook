@@ -24,6 +24,10 @@ const TACGenerator = defineAsyncComponent(() => import('./components/compiler-pr
 const BackpatchingAnalyzer = defineAsyncComponent(() => import('./components/compiler-principles/BackpatchingAnalyzer.vue'))
 const DAGOptimizer = defineAsyncComponent(() => import('./components/compiler-principles/DAGOptimizer.vue'))
 
+// 计算机网络组件
+const DijkstraAlgorithm = defineAsyncComponent(() => import('./components/computer-networking/DijkstraAlgorithm.vue'))
+const DistanceVectorAlgorithm = defineAsyncComponent(() => import('./components/computer-networking/DistanceVectorAlgorithm.vue'))
+
 export default {
   extends: Theme,
   Layout: () => {
@@ -48,6 +52,8 @@ export default {
     app.component('TACGenerator', TACGenerator)
     app.component('BackpatchingAnalyzer', BackpatchingAnalyzer)
     app.component('DAGOptimizer', DAGOptimizer)
+    app.component('DijkstraAlgorithm', DijkstraAlgorithm)
+    app.component('DistanceVectorAlgorithm', DistanceVectorAlgorithm)
     app.component('VisualizationLink', VisualizationLink)
   }
 }

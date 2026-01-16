@@ -11,5 +11,14 @@ export default [
       { text: '第六章：链路层与局域网', link: '/computer-networking/ch06-link-layer' },
       { text: '第七章：无线网络', link: '/computer-networking/ch07-wireless-network' }
     ]
+  },
+  {
+    text: '交互式实验',
+    link: '/computer-networking/visualization/',
+    items: [
+      { text: '总览', link: '/computer-networking/visualization/' },
+      { text: 'Dijkstra 算法可视化', link: '/computer-networking/visualization/dijkstra-algorithm' },
+      { text: '距离向量 (DV) 模拟', link: '/computer-networking/visualization/distance-vector' }
+    ]
   }
 ] 

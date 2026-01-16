@@ -23,6 +23,8 @@
 *   **信息获取**：通过**链路状态广播**（Link State Broadcast），每个节点向全网发送自己与邻居的链路状态。
 *   **计算核心**：每个节点独立运行 **Dijkstra 算法**，计算从自己到所有其他节点的最短路径树（Shortest Path Tree），进而生成转发表。
 
+<VisualizationLink title="实验：Dijkstra 算法可视化" href="/computer-networking/visualization/dijkstra-algorithm" />
+
 ### 5.2.2 Dijkstra 算法实例
 设源节点为 $u$，$D(v)$ 表示从 $u$ 到 $v$ 的当前最短路径代价，$p(v)$ 表示 $v$ 的前驱节点，$N'$ 为已找到最短路径的节点集合。
 **步骤**：
@@ -80,6 +82,8 @@ DV 算法的一个主要问题是**收敛慢**，且可能产生路由环路。
     *   **机制**：如果 $z$ 是通过 $y$ 到达 $x$ 的，那么 $z$ 在通告给 $y$ 时，必须谎称 $d_z(x) = \infty$。
     *   **作用**：防止 $y$ 误以为 $z$ 有一条独立的路径到达 $x$，从而避免两个节点间的直接路由环路。
     *   **局限**：无法解决涉及 3 个或更多节点的复杂环路。
+
+<VisualizationLink title="实验：距离向量 (DV) 模拟" href="/computer-networking/visualization/distance-vector" />
 
 ## 5.4 LS 与 DV 的比较
 | 特性 | 链路状态 (LS) | 距离矢量 (DV) |

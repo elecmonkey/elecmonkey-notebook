@@ -12,7 +12,7 @@ export default [
     ]
   },
   {
-    text: '可视化实验',
+    text: '交互式实验',
     items: [
       { text: '总览', link: '/compiler-principles/visualization/' },
       { text: '正则表达式转 NFA', link: '/compiler-principles/visualization/regex-to-nfa' },
