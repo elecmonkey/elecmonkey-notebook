@@ -215,8 +215,7 @@ const reset = () => {
 .line { width: 40px; height: 2px; background: #eee; }
 
 .status-log {
-  height: 150px;
-  overflow-y: auto;
+  min-height: 150px;
   background: #282c34;
   color: #abb2bf;
   padding: 10px;

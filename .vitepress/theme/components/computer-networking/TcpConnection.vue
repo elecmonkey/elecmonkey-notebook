@@ -6,7 +6,7 @@
       <button class="btn secondary" @click="reset" :disabled="isBusy">重置</button>
     </div>
 
-    <div class="diagram-area">
+    <div class="diagram-area" :style="{ height: containerHeight + 'px' }">
       <!-- Client Side -->
       <div class="host-column">
         <div class="host-icon">💻</div>
@@ -24,7 +24,7 @@
                  class="packet"
                  :data-id="pkt.id"
                  :class="pkt.from === 'client' ? 'packet-right' : 'packet-left'"
-                 :style="{ left: pkt.x + '%' }">
+                 :style="{ left: pkt.x + '%', top: pkt.y + 'px' }">
               <div class="packet-body">
                 <div class="packet-flags">{{ pkt.flags }}</div>
                 <div class="packet-info">seq={{ pkt.seq }} ack={{ pkt.ack }}</div>
@@ -63,6 +63,7 @@ const serverState = ref<State>('CLOSED')
 const isBusy = ref(false)
 const packets = ref<any[]>([])
 const logs = ref<{time: string, msg: string}[]>([])
+const containerHeight = ref(400)
 
 let packetId = 0
 const seq = ref(100)
@@ -85,11 +86,34 @@ const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 const sendPacket = async (from: 'client' | 'server', flags: string, s: number, a: number) => {
   const id = packetId++
   // x represents position percentage: 0 = client, 100 = server
-  const startX = from === 'client' ? 0 : 100
-  const endX = from === 'client' ? 100 : 0
+  // Adjusted range to 15% - 85% to avoid overlapping with side text
+  const startX = from === 'client' ? 5 : 95
+  const endX = from === 'client' ? 95 : 5
   
-  const pkt = { id, from, flags, seq: s, ack: a, x: startX, y: 50 }
+  const pkt = { id, from, flags, seq: s, ack: a, x: startX, y: 0 }
   packets.value.push(pkt)
+  
+  // Update vertical positions for all packets (stacking)
+  const updateLayout = () => {
+    packets.value.forEach((p, i) => {
+      // Start at 40px, step 90px (increased from 60px)
+      p.y = 40 + i * 80
+    })
+    
+    // Adjust container height if needed
+    // 400 is base height. 
+    // Last packet bottom = p.y + packet_height (approx 50) + padding (50)
+    const lastPkt = packets.value[packets.value.length - 1]
+    if (lastPkt) {
+      const requiredHeight = lastPkt.y + 100
+      if (requiredHeight > 400) {
+        containerHeight.value = requiredHeight
+      } else {
+        containerHeight.value = 400
+      }
+    }
+  }
+  updateLayout()
   
   // Wait for Vue to render the new element
   await nextTick()
@@ -110,18 +134,6 @@ const sendPacket = async (from: 'client' | 'server', flags: string, s: number, a
   // Wait for transition duration (must match CSS)
   await sleep(2000)
   
-  // Stack packets at destination (move up/down slightly to avoid full overlap)
-  // But wait! We need to keep them visible for a bit.
-  if (reactivePkt) {
-     reactivePkt.y = from === 'client' ? 20 : 80 // Move out of the "wire"
-  }
-  
-  // Keep packet visible for history context
-  // Only remove oldest packets if too many
-  if (packets.value.length > 5) {
-     packets.value.shift()
-  }
-  
   return pkt
 }
 
@@ -133,6 +145,7 @@ const reset = () => {
   isBusy.value = false
   seq.value = 100
   ack.value = 0
+  containerHeight.value = 400
   addLog('系统已重置')
 }
 
@@ -284,25 +297,24 @@ const startTeardown = async () => {
   position: relative;
   margin: 0 40px; /* Increased margin to avoid overlap with hosts */
   border-bottom: 2px dashed #ddd; /* Wire metaphor */
-  align-self: center; /* Center vertically in flex container */
-  height: 2px; /* It's just a line */
+  height: 100%;
 }
 
 .packet-track {
   position: absolute;
-  top: 50%;
+  top: 0;
   left: 0;
   width: 100%;
-  height: 0;
+  height: 100%;
 }
 
 .packet {
   position: absolute;
-  top: 50%; /* Centered on the wire */
+  /* top is set by inline style */
   transform: translate(-50%, -50%);
   background: #fff;
   border: 2px solid #3eaf7c;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   font-size: 12px;
@@ -313,7 +325,7 @@ const startTeardown = async () => {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  transition: left 1s linear, opacity 0.3s ease; /* Ensure both transitions are present */
+  transition: left 2s linear, top 0.5s ease, opacity 0.3s ease;
 }
 .packet-icon { font-size: 20px; }
 .packet-flags { font-weight: bold; color: #3eaf7c; font-size: 14px; }
@@ -324,8 +336,7 @@ const startTeardown = async () => {
 
 .status-log {
   margin-top: 20px;
-  height: 150px;
-  overflow-y: auto;
+  min-height: 150px;
   background: #282c34;
   color: #abb2bf;
   padding: 10px;

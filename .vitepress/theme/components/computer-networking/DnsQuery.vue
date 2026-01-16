@@ -9,7 +9,7 @@
           <input type="radio" value="recursive" v-model="mode" :disabled="isBusy"> 递归查询 (Recursive)
         </label>
       </div>
-      <button class="btn primary" @click="startQuery" :disabled="isBusy">开始查询 (www.example.com)</button>
+      <button class="btn primary" @click="startQuery" :disabled="isBusy">开始查询 (www.elecmonkey.com)</button>
       <button class="btn secondary" @click="reset" :disabled="isBusy">重置</button>
     </div>
 
@@ -37,7 +37,7 @@
 
       <div class="server-node" style="left: 90%; top: 60%">
         <div class="icon">🎯</div>
-        <div class="label">Auth DNS (example.com)</div>
+        <div class="label">Auth DNS (elecmonkey.com)</div>
       </div>
 
       <!-- Packet Animation -->
@@ -219,8 +219,7 @@ const reset = () => {
 }
 
 .status-log {
-  height: 150px;
-  overflow-y: auto;
+  min-height: 150px;
   background: #282c34;
   color: #abb2bf;
   padding: 10px;

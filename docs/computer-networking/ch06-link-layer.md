@@ -523,7 +523,7 @@ digraph VlanFrame {
 
 ## 6.7 综合示例：Web 页面请求的历程
 
-假设用户在浏览器输入 `www.example.com`，以下是计算机网络各层协议协同工作的完整过程。
+假设用户在浏览器输入 `www.elecmonkey.com`，以下是计算机网络各层协议协同工作的完整过程。
 
 ### 6.7.1 第一步：获取本机 IP 地址（DHCP）
 主机启动或接入网络时，需要获取 IP 地址、子网掩码、默认网关和 DNS 服务器地址。
@@ -546,12 +546,12 @@ sequenceDiagram
 ```
 
 ### 6.7.2 第二步：域名解析（DNS）
-主机需要将域名 `www.example.com` 解析为 IP 地址。
+主机需要将域名 `www.elecmonkey.com` 解析为 IP 地址。
 1.  主机向**本地 DNS 服务器**发送 DNS 查询报文（UDP，端口 53）。
 2.  若本地 DNS 无缓存，则进行迭代查询：
     *   向**根 DNS** 查询，获得 `.com` 顶级域 DNS 地址。
-    *   向 **TLD DNS** 查询，获得 `example.com` 权威 DNS 地址。
-    *   向**权威 DNS** 查询，获得 `www.example.com` 的 IP 地址。
+    *   向 **TLD DNS** 查询，获得 `elecmonkey.com` 权威 DNS 地址。
+    *   向**权威 DNS** 查询，获得 `www.elecmonkey.com` 的 IP 地址。
 3.  本地 DNS 将结果缓存并返回给主机。
 
 ```viz
@@ -564,14 +564,14 @@ digraph DNS {
   LocalDNS [label="本地 DNS\n(ISP)"];
   Root [label="根 DNS\n(.)"];
   TLD [label="顶级域 DNS\n(.com)"];
-  Auth [label="权威 DNS\n(example.com)"];
+  Auth [label="权威 DNS\n(elecmonkey.com)"];
   
-  Client -> LocalDNS [label="1. 查询 www.example.com"];
+  Client -> LocalDNS [label="1. 查询 www.elecmonkey.com"];
   LocalDNS -> Root [label="2. 问根"];
   Root -> LocalDNS [label="3. 找 .com DNS"];
   LocalDNS -> TLD [label="4. 问 .com"];
-  TLD -> LocalDNS [label="5. 找 example.com DNS"];
-  LocalDNS -> Auth [label="6. 问 example.com"];
+  TLD -> LocalDNS [label="5. 找 elecmonkey.com DNS"];
+  LocalDNS -> Auth [label="6. 问 elecmonkey.com"];
   Auth -> LocalDNS [label="7. 返回 IP"];
   LocalDNS -> Client [label="8. 返回 IP"];
 }
@@ -680,8 +680,8 @@ sequenceDiagram
     DHCP-->>OS: DHCP ACK (IP OK)
     
     Note over User, Web: 2. 域名解析 (DNS)
-    User->>OS: 访问 www.example.com
-    OS->>DNS: DNS Query (example.com?)
+    User->>OS: 访问 www.elecmonkey.com
+    OS->>DNS: DNS Query (elecmonkey.com?)
     DNS-->>OS: DNS Reply (IP: 1.2.3.4)
     
     Note over User, Web: 3. 建立连接 (TCP Handshake)

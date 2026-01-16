@@ -36,6 +36,7 @@
       <!-- Packets -->
       <div v-for="pkt in packets" :key="pkt.id" 
            class="packet" 
+           :data-id="pkt.id"
            :class="pkt.type"
            :style="{ left: pkt.x + '%', top: '50px' }">
         ✉️
@@ -215,8 +216,7 @@ const reset = () => {
 .packet.unicast { filter: drop-shadow(0 0 5px blue); }
 
 .status-log {
-  height: 150px;
-  overflow-y: auto;
+  min-height: 150px;
   background: #282c34;
   color: #abb2bf;
   padding: 10px;

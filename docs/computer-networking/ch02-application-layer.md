@@ -205,7 +205,7 @@ digraph HTTP_Request {
   
   details [shape=plaintext, fontname="Helvetica", label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" WIDTH="100%">
     <TR><TD WIDTH="80">请求行</TD><TD WIDTH="300">GET /index.html HTTP/1.1</TD></TR>
-    <TR><TD>首部行</TD><TD>Host: www.example.com<BR/>User-Agent: Mozilla/5.0<BR/>Connection: keep-alive</TD></TR>
+    <TR><TD>首部行</TD><TD>Host: www.elecmonkey.com<BR/>User-Agent: Mozilla/5.0<BR/>Connection: keep-alive</TD></TR>
     <TR><TD>实体主体</TD><TD>(POST 方法时存放数据)</TD></TR>
   </TABLE>>];
   
@@ -424,14 +424,14 @@ DNS 不使用集中式数据库（单点故障、流量巨大、距离远、维�
     *   它们知道权威 DNS 服务器的地址。
 3.  **权威 DNS 服务器 (Authoritative DNS Servers)**：
     *   在互联网上具有公共可访问主机的组织机构，必须提供公共可访问的 DNS 记录。
-    *   这些记录由权威 DNS 服务器保存（也就是最终保存 `www.example.com` -> `1.2.3.4` 映射的地方）。
+    *   这些记录由权威 DNS 服务器保存（也就是最终保存 `www.elecmonkey.com` -> `1.2.3.4` 映射的地方）。
 4.  **本地 DNS 服务器 (Local DNS Server)**：
     *   **注意：严格来说，本地 DNS 不属于 DNS 的层次结构**，但它对 DNS 的运作至关重要。
     *   每个 ISP（如电信、学校、公司）都有一台本地 DNS（也叫默认名字服务器）。
     *   当主机发起 DNS 查询时，请求首先发往本地 DNS。本地 DNS 起到**代理 (Proxy)** 的作用，将请求转发到 DNS 层次结构中。
 
 ### 2.7.3 DNS 工作原理与查询方式
-当用户访问 `www.example.com` 时，查询过程如下：
+当用户访问 `www.elecmonkey.com` 时，查询过程如下：
 
 ```viz
 digraph DNS_Query {
@@ -443,13 +443,13 @@ digraph DNS_Query {
   Local [label="本地 DNS\n(Local DNS)", style=filled, fillcolor="#e1f5fe"];
   Root [label="根 DNS\n(Root)"];
   TLD [label="顶级域 DNS\n(TLD .com)"];
-  Auth [label="权威 DNS\n(Auth example.com)"];
+  Auth [label="权威 DNS\n(Auth elecmonkey.com)"];
   
-  User -> Local [label="1. 递归查询\n(www.example.com)"];
+  User -> Local [label="1. 递归查询\n(www.elecmonkey.com)"];
   Local -> Root [label="2. 迭代查询"];
   Root -> Local [label="3. 指向 .com TLD"];
   Local -> TLD [label="4. 迭代查询"];
-  TLD -> Local [label="5. 指向 example.com Auth"];
+  TLD -> Local [label="5. 指向 elecmonkey.com Auth"];
   Local -> Auth [label="6. 迭代查询"];
   Auth -> Local [label="7. 返回 IP"];
   Local -> User [label="8. 返回 IP"];
