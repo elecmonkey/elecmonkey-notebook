@@ -23,6 +23,14 @@
 7. [第六章：链路层与局域网](/computer-networking/ch06-link-layer) - 以太网、交换、ARP 与局域网技术
 8. [第七章：无线网络](/computer-networking/ch07-wireless-network) - 无线信道、Wi-Fi、移动网络与无线协议挑战
 
+## 可视化实验平台
+
+本笔记提供了一系列交互式可视化工具，帮助理解抽象的网络协议与算法：
+
+### 网络层控制平面 (Control Plane)
+- [Dijkstra 最短路径算法 (链路状态)](./visualization/dijkstra-algorithm)
+- [距离向量路由算法 (Distance Vector)](./visualization/distance-vector)
+
 ## 参考资料
 
 - 《计算机网络：自顶向下方法》(Computer Networking: A Top-Down Approach) — James F. Kurose & Keith W. Ross

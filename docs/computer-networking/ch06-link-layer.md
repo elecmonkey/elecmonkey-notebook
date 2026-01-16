@@ -185,59 +185,341 @@ MAC 协议主要分为以下三类：
     *   **优点**：无碰撞，效率高，去中心化。
     *   **缺点**：令牌丢失需复杂恢复机制，节点故障可能中断环。
 
-## 6.4 以太网与交换机
-### 6.4.1 以太网特性
-以太网（Ethernet）是最常见的有线 LAN 技术：
-- 无连接、尽力而为
-- 早期共享介质采用 CSMA/CD
-- 现代交换式以太网全双工，无碰撞
+## 6.4 局域网 (LAN) 与以太网
 
-### 6.4.2 以太网帧结构
-字段包含前同步码、帧开始定界符、目的/源 MAC、类型、数据、CRC。
+### 6.4.1 局域网概述
+**局域网 (Local Area Network, LAN)** 是指在较小的地理范围内（如家庭、学校、办公楼），将各种计算机、外设和数据库系统互联起来的计算机网络。
 
-### 6.4.3 交换机工作原理
-- 存储转发（store-and-forward）
-- 学习源 MAC 建立转发表（self-learning）
-- 根据目的 MAC 转发或过滤
+*   **特点**：
+    1.  **范围小**：通常几公里以内。
+    2.  **速率高**：从早期的 10Mbps 到现在的 100Gbps。
+    3.  **误码率低**：使用优质传输介质（双绞线、光纤），误码率极低。
+    4.  **广播信道**：传统 LAN 多采用共享信道，支持广播和组播。
 
-### 6.4.4 交换机与路由器对比
-- 交换机：链路层设备，基于 MAC 地址转发。
-- 路由器：网络层设备，基于 IP 地址转发。
-交换机易产生广播风暴，路由器可隔离广播域。
+*   **体系结构 (IEEE 802 标准)**：
+    为了使数据链路层能更好地适应多种局域网标准，IEEE 802 委员会将链路层拆分为两个子层：
+    1.  **逻辑链路控制子层 (LLC, Logical Link Control)**：
+        *   **上层**子层。
+        *   向网络层提供统一的接口，隐藏不同物理网络的差异。
+        *   负责帧的序号管理、流量控制和差错控制（在现代 TCP/IP 栈中，LLC 的功能多被上层协议接管，变得透明或简化）。
+    2.  **媒体访问控制子层 (MAC, Media Access Control)**：
+        *   **下层**子层，直接与物理层交互。
+        *   负责**组帧**、**寻址**（MAC 地址）和**多路访问控制**（如 CSMA/CD）。
+        *   不同的 LAN 技术（以太网、WiFi）主要区别在于 MAC 子层和物理层。
+
+### 6.4.2 以太网特性
+以太网（Ethernet）是目前最主流的有线 LAN 技术：
+- **无连接 (Connectionless)**：发送方和接收方之间不进行握手。
+- **不可靠 (Unreliable)**：不向发送方确认，差错帧直接丢弃（依靠高层 TCP 重传）。
+- **拓扑结构 (Topology)**：
+    - **总线型 (Bus)**：早期以太网（10Base2/10Base5）使用同轴电缆，所有节点共享一条介质（碰撞域）。
+    - **星型 (Star)**：现代以太网（10BaseT及以后）使用双绞线连接到中心设备（集线器或交换机）。
+- **工作模式**：
+    - 早期（集线器）：共享介质，半双工，使用 CSMA/CD。
+    - 现代（交换机）：独占带宽，全双工，无碰撞（不使用 CSMA/CD）。
+
+### 6.4.3 以太网帧结构
+**帧格式**（Ethernet II）：
+`[前同步码 8B] [目的 MAC 6B] [源 MAC 6B] [类型 2B] [数据 46-1500B] [CRC 4B]`
+
+```viz
+digraph EthernetFrame {
+  rankdir=TB;
+  node [shape=none, fontname="Helvetica"];
+  bgcolor="transparent";
+
+  frame [label=<
+  <table border="0" cellborder="1" cellspacing="0" cellpadding="8">
+    <tr>
+      <td bgcolor="#f5f5f5" width="60"><b>Preamble</b></td>
+      <td bgcolor="#e0e0e0" width="80"><b>Dest MAC</b></td>
+      <td bgcolor="#e0e0e0" width="80"><b>Source MAC</b></td>
+      <td bgcolor="#f5f5f5" width="50"><b>Type</b></td>
+      <td bgcolor="#ffffff" width="180"><b>Data (Payload)</b></td>
+      <td bgcolor="#f5f5f5" width="50"><b>CRC</b></td>
+    </tr>
+    <tr>
+      <td align="center"><font point-size="10" color="#666666">8 Bytes<br/>同步</font></td>
+      <td align="center"><font point-size="10" color="#666666">6 Bytes<br/>目的地址</font></td>
+      <td align="center"><font point-size="10" color="#666666">6 Bytes<br/>源地址</font></td>
+      <td align="center"><font point-size="10" color="#666666">2 Bytes<br/>协议类型</font></td>
+      <td align="center"><font point-size="10" color="#666666">46-1500 Bytes<br/>上层数据</font></td>
+      <td align="center"><font point-size="10" color="#666666">4 Bytes<br/>校验</font></td>
+    </tr>
+  </table>
+  >];
+}
+```
+
+*   **字段详解**：
+    *   **前同步码 (Preamble)**：8 字节，用于接收方时钟同步。
+    *   **地址**：6 字节源/目的 MAC 地址。
+    *   **类型 (Type)**：2 字节，指出上层协议（0x0800=IPv4, 0x0806=ARP）。
+    *   **数据 (Payload)**：46 ~ 1500 字节。
+    *   **CRC**：4 字节帧检验序列。
+*   **帧长度限制**：
+    *   **最小帧长度**：**64 字节**（6+6+2+46+4）。
+        *   **原因**：为了保证 **CSMA/CD** 能够检测到碰撞（发送时延 >= 往返传播时延 RTT）。
+        *   若数据不足 46 字节，必须进行**填充 (Padding)**。
+    *   **最大传输单元 (MTU)**：1500 字节（数据部分）。
+
+
+### 6.4.4 链路层交换机 (Switch)
+交换机是现代以太网的核心设备，工作在**链路层**（Layer 2）。它通过**过滤**和**转发**帧，将局域网从共享介质（碰撞域）转变为独占带宽的交换式网络。
+
+#### 1. 交换机的位置与作用
+*   **位置**：连接局域网内的多个主机或子网，处于网络拓扑的中心（星型拓扑）。
+*   **核心功能**：
+    *   **转发（Forwarding）**：将进入接口的帧导向正确的输出接口。
+    *   **过滤（Filtering）**：决定帧是该转发到特定接口还是丢弃。
+    *   **隔离碰撞域**：每个接口是一个独立的碰撞域，支持全双工通信（无碰撞）。
+    *   **透明性**：主机感知不到交换机的存在（即插即用）。
+
+#### 2. 交换机表（Switch Table）
+交换机依靠**交换机表**来决定转发路径。表中每一项包含：
+*   **MAC 地址**：主机的物理地址。
+*   **接口**：该 MAC 地址所连接的交换机端口。
+*   **时间戳**：记录表项生成时间（用于老化删除）。
+
+| MAC 地址 | 接口 (Interface) | TTL (Time To Live) |
+| :--- | :--- | :--- |
+| 1A-2B-3C-4D-5E-6F | 1 | 60s |
+| A1-B2-C3-D4-E5-F6 | 2 | 60s |
+
+#### 3. 自学习算法（Self-Learning）
+交换机表是**即插即用**（Plug-and-play）的，无需人工配置，通过**自学习**动态建立：
+1.  **记录源**：当交换机从接口 $x$ 收到一个帧时，它记录下该帧的**源 MAC 地址**与接口 $x$ 的映射关系（因为它知道该 MAC 就在接口 $x$ 的方向）。
+2.  **查找目的**：检查帧的**目的 MAC 地址**是否在表中：
+    *   **命中（Known Unicast）**：如果目的 MAC 在表中且关联接口为 $y$：
+        *   若 $x=y$，丢弃帧（源目在同一网段，无需转发）。
+        *   若 $x \neq y$，将帧**单播**转发到接口 $y$。
+    *   **未命中（Unknown Unicast）**：如果目的 MAC 不在表中，则**泛洪**（Flood），即向除 $x$ 以外的所有接口转发该帧。
+3.  **老化**：如果在一段时间（如 60s）内未收到某 MAC 的帧，则从表中删除该表项（应对主机移动）。
+
+### 6.4.4 交换机与路由器的对比
+
+| 特性 | 交换机 (Switch) | 路由器 (Router) |
+| :--- | :--- | :--- |
+| **工作层次** | 链路层 (L2) | 网络层 (L3) |
+| **转发依据** | MAC 地址 | IP 地址 |
+| **算法** | 自学习、生成树协议 (STP) | 路由算法 (Dijkstra, DV, BGP) |
+| **处理对象** | 帧 (Frame) | 数据报 (Datagram) |
+| **广播处理** | **泛洪**（所有接口转发广播帧） | **隔离**（默认不转发广播） |
+| **子网划分** | 所有接口在同一子网 | 每个接口连接不同子网 |
+| **配置** | 即插即用 | 需配置 IP、路由协议 |
+| **拓扑限制** | 需生成树消除环路 | 支持任意拓扑（有 TTL 防环） |
+
+### 6.4.5 交换机与集线器、中继器的区别
+
+*   **中继器 (Repeater)**：
+    *   **物理层**设备。
+    *   **功能**：仅放大和再生信号，扩大传输距离。
+    *   **特点**：不理解帧，不隔离碰撞域，不隔离广播域。
+
+*   **集线器 (Hub)**：
+    *   **物理层**设备（多端口中继器）。
+    *   **功能**：将一个端口收到的信号**广播**到所有其他端口。
+    *   **特点**：所有端口在**同一个碰撞域**（带宽共享），半双工，逻辑总线型。
+
+*   **交换机 (Switch)**：
+    *   **链路层**设备。
+    *   **功能**：识别 MAC 地址，存储转发。
+    *   **特点**：每个端口是**独立碰撞域**（带宽独占），全双工，隔离碰撞但不隔离广播。
+
+```viz
+digraph DeviceComparison {
+  rankdir=TD;
+  node [shape=box, fontname="Helvetica"];
+  bgcolor="transparent";
+  
+  subgraph cluster_l1 {
+    label="物理层 (L1)";
+    style=dashed;
+    Hub [label="集线器 (Hub)\n无脑广播\n共享带宽\n同一碰撞域"];
+  }
+  
+  subgraph cluster_l2 {
+    label="链路层 (L2)";
+    style=dashed;
+    Switch [label="交换机 (Switch)\nMAC转发\n独占带宽\n隔离碰撞域"];
+  }
+  
+  subgraph cluster_l3 {
+    label="网络层 (L3)";
+    style=dashed;
+    Router [label="路由器 (Router)\nIP路由\n跨网段\n隔离广播域"];
+  }
+  
+  Hub -> Switch [label="进化: 流量隔离"];
+  Switch -> Router [label="进化: 广播隔离"];
+}
+```
 
 ## 6.5 MAC 地址与 ARP
-### 6.5.1 MAC 地址
-MAC 地址（LAN address）为 48 位物理地址，标识网络接口。
 
-### 6.5.2 ARP 协议
-ARP（Address Resolution Protocol）将 IP 映射为 MAC：
-- 查询使用广播
-- 响应使用单播
+### 6.5.1 局域网地址 (MAC 地址)
+**MAC 地址**（Media Access Control Address），也称为**局域网地址**（LAN Address）、**物理地址**或**硬件地址**。
+
+*   **表示与结构**：
+    *   **长度**：48 位（6 字节）。
+    *   **表示**：通常使用**十六进制**表示法，每字节之间用连字符或冒号分隔。例如：`1A-2B-3C-4D-5E-6F`。
+    *   **全球唯一性**：由 IEEE 统一管理。前 24 位是厂商标识符（OUI），后 24 位由厂商自行分配。
+*   **作用**：
+    *   在局域网（链路层）内部唯一标识一个网络接口（NIC）。
+    *   **扁平地址**：MAC 地址与设备位置无关（类似身份证号），而 IP 地址与网络拓扑有关（类似邮政编码）。
+*   **特殊地址**：
+    *   **广播地址**：`FF-FF-FF-FF-FF-FF`。发送到此地址的帧会被局域网内所有适配器接收并处理。
+
+### 6.5.2 地址解析协议 (ARP)
+**ARP (Address Resolution Protocol)** 的功能是将网络层的 **IP 地址**解析为链路层的 **MAC 地址**。
+
+*   **为什么需要 ARP？**
+    *   IP 数据报在链路层传输时，必须封装在帧中，帧首部需要**目的 MAC 地址**。
+    *   发送方通常只知道目的主机的 IP 地址（由 DNS 或配置得到），但不知道其 MAC 地址。
+
+*   **工作原理 (同子网内)**：
+    假设主机 A (`192.168.1.10`) 想给主机 B (`192.168.1.20`) 发送数据：
+    1.  **查表**：A 先检查自己的 **ARP 表**。若有 B 的 MAC，直接使用。
+    2.  **广播请求**：若表中无记录，A 构造一个 **ARP 查询分组**（包含 B 的 IP），并封装在以太网广播帧中发送（目的 MAC 为 `FF-FF-FF-FF-FF-FF`）。
+        *   *LAN 内所有主机都会收到该帧并上交给 ARP 模块。*
+    3.  **单播响应**：
+        *   其他主机（C, D）发现 IP 不匹配，忽略。
+        *   主机 B 发现 IP 匹配，收下请求，并向 A 发送 **ARP 响应分组**（包含 B 的 MAC）。该响应是**单播**的。
+    4.  **缓存**：A 收到响应后，将 (IP_B, MAC_B) 存入 ARP 表，并开始发送数据帧。
 
 ### 6.5.3 ARP 表
-ARP 表保存（IP，MAC，TTL）映射，缓存提高效率。
+每台主机和路由器都在内存中维护一个 ARP 表。
+*   **内容**：`< IP 地址, MAC 地址, TTL >`。
+*   **TTL (Time To Live)**：生存时间。表项是动态的，若一段时间（如 20 分钟）未刷新，则会自动删除。这使得 ARP 能适应网络拓扑的变化（如 IP 变更或网卡更换）。
 
-### 6.5.4 跨网段转发
-若目的地址不在本子网，帧目的 MAC 为默认网关接口 MAC，由路由器转发。
+### 6.5.4 发送数据报到子网以外
+如果要发送数据给**子网以外**的主机（如访问百度）：
+1.  **判断**：发送方比较目的 IP 和自己的子网掩码，发现目的 IP 不在同一子网。
+2.  **找网关**：发送方知道必须先发给**默认网关**（第一跳路由器）。
+3.  **ARP 解析网关**：查询 ARP 表，获取**默认网关 IP** 对应的 **MAC 地址**（不是目的主机的 MAC！）。
+4.  **封装**：
+    *   **目的 IP**：最终目的主机的 IP。
+    *   **目的 MAC**：**默认网关的 MAC**。
+5.  **转发**：帧到达网关后，路由器提取数据报，根据路由表决定下一跳，再封装新的帧（源 MAC 变为路由器出接口 MAC，目的 MAC 为下一跳 MAC）继续传输。
 
 ## 6.6 VLAN 与 802.1Q
-### 6.6.1 VLAN 动机
-- 缩小广播域
-- 逻辑隔离不同部门
-- 支持用户迁移
 
-### 6.6.2 VLAN 类型
-- 端口 VLAN：按端口划分
-- 动态 VLAN：按 MAC 动态分配
+### 6.6.1 VLAN 概述
+**虚拟局域网 (VLAN, Virtual Local Area Network)** 是一种将局域网内的设备**逻辑地**划分成一个个网段的技术，而不是受物理位置的限制。
 
-### 6.6.3 VLAN 间通信
-不同 VLAN 之间通信需要路由器或三层交换机。
+*   **动机 (Why VLAN?)**：
+    1.  **限制广播域**：在传统 LAN 中，广播帧（如 ARP、DHCP）会发送给所有主机，导致**广播风暴**和性能下降。VLAN 将广播限制在单个 VLAN 内。
+    2.  **安全性**：不同部门（如财务部和研发部）的数据需要在链路层隔离，防止敏感数据被嗅探。
+    3.  **灵活性与管理**：当员工搬到底层办公室时，无需重新布线，只需修改交换机端口配置即可保持在原 VLAN。
+    4.  **成本**：无需购买单独的交换机来物理隔离网络。
 
-### 6.6.4 802.1Q
-802.1Q 帧中插入 VLAN Tag：
-- 12 位 VLAN ID
-- 优先级字段
-用于 trunk 端口在多交换机间转发。
+### 6.6.2 基于端口的 VLAN (Port-based VLAN)
+这是最常见的 VLAN 实现方式。网络管理员将交换机的物理端口分配给特定的 VLAN ID。
+
+*   **工作原理**：
+    *   交换机维护一个**端口-VLAN 映射表**。
+    *   连接到端口 1-8 的主机属于 VLAN 10（工程部）。
+    *   连接到端口 9-16 的主机属于 VLAN 20（市场部）。
+*   **隔离性**：
+    *   VLAN 10 的主机发送的帧，交换机只会转发给 VLAN 10 的其他端口。
+    *   VLAN 10 与 VLAN 20 之间完全隔离，就像它们连接在两个物理上独立的交换机上一样。
+    *   若需通信，必须通过**路由器**或**三层交换机**。
+
+```viz
+digraph PortVLAN {
+  rankdir=TB;
+  node [shape=box, fontname="Helvetica"];
+  bgcolor="transparent";
+  
+  subgraph cluster_switch {
+    label="物理交换机";
+    style=dashed;
+    
+    subgraph cluster_vlan10 {
+      label="VLAN 10 (工程部)";
+      color=blue;
+      p1 [label="Port 1"];
+      p2 [label="Port 2"];
+    }
+    
+    subgraph cluster_vlan20 {
+      label="VLAN 20 (市场部)";
+      color=red;
+      p3 [label="Port 3"];
+      p4 [label="Port 4"];
+    }
+  }
+  
+  h1 [label="Host A"];
+  h2 [label="Host B"];
+  h3 [label="Host C"];
+  h4 [label="Host D"];
+  
+  h1 -> p1;
+  h2 -> p2;
+  h3 -> p3;
+  h4 -> p4;
+  
+  edge [style=invis];
+  p2 -> p3;
+}
+```
+
+### 6.6.3 跨交换机 VLAN 与干道 (Trunking)
+当 VLAN 跨越两台或多台交换机时（例如工程部在 1 楼和 2 楼都有人），交换机之间需要互联。
+
+*   **问题**：如果用普通链路连接两台交换机，交换机如何知道收到的帧属于哪个 VLAN？
+*   **解决方案：干道 (Trunk)**：
+    *   **Trunk 端口**：交换机上用于互联的高带宽端口，允许**传输多个 VLAN** 的流量。
+    *   **Access 端口**：连接普通主机，只属于一个 VLAN，收发无标签的标准以太网帧。
+*   **标记 (Tagging)**：为了区分不同 VLAN 的流量，Trunk 链路上传输的帧必须包含 VLAN 信息（Tag）。
+
+### 6.6.4 802.1Q 帧格式
+**IEEE 802.1Q** 是标准的 VLAN 标记协议。它在标准以太网帧的源 MAC 地址和类型字段之间插入了 **4 字节**的 Tag。
+
+*   **帧格式变化**：
+    *   **标准帧**：`[Dest MAC] [Src MAC] [Type] [Data] [CRC]`
+    *   **802.1Q 帧**：`[Dest MAC] [Src MAC] [Tag] [Type] [Data] [CRC]`
+
+*   **Tag 字段详解 (4 Bytes)**：
+    1.  **TPID (Tag Protocol Identifier)**：2 字节，固定为 **0x8100**，标识这是一个 802.1Q 帧。
+    2.  **TCI (Tag Control Information)**：2 字节，包含：
+        *   **PRI (Priority)**：3 位，用于 802.1p 服务质量 (QoS)，定义帧的优先级（0-7）。
+        *   **CFI/DEI**：1 位，规范格式指示符/丢弃资格指示符。
+        *   **VID (VLAN ID)**：**12 位**，标识该帧所属的 VLAN。范围 0-4095（0 和 4095 保留，可用 1-4094）。
+
+```viz
+digraph VlanFrame {
+  rankdir=TB;
+  node [shape=none, fontname="Helvetica"];
+  bgcolor="transparent";
+
+  frame [label=<
+  <table border="0" cellborder="1" cellspacing="0" cellpadding="8">
+    <tr>
+      <td bgcolor="#e0e0e0" colspan="2">Dest MAC<br/>(6B)</td>
+      <td bgcolor="#e0e0e0" colspan="2">Src MAC<br/>(6B)</td>
+      <td bgcolor="#ffe0b2" colspan="4"><b>802.1Q Tag<br/>(4B)</b></td>
+      <td bgcolor="#f5f5f5" colspan="2">Type<br/>(2B)</td>
+      <td bgcolor="#ffffff" colspan="4">Data<br/>(46-1500B)</td>
+      <td bgcolor="#f5f5f5" colspan="1">CRC<br/>(4B)</td>
+    </tr>
+    <tr>
+      <td colspan="4" border="0"></td>
+      <td bgcolor="#fff3e0" width="60"><b>TPID</b><br/>0x8100</td>
+      <td bgcolor="#fff3e0" width="40"><b>PRI</b><br/>3 bits</td>
+      <td bgcolor="#fff3e0" width="30"><b>CFI</b><br/>1 bit</td>
+      <td bgcolor="#ffcc80" width="80"><b>VID</b><br/>12 bits</td>
+      <td colspan="7" border="0"></td>
+    </tr>
+  </table>
+  >];
+}
+```
+
+*   **处理流程**：
+    1.  **发送时**：当帧从 Trunk 端口离开交换机时，交换机插入 Tag。
+    2.  **接收时**：对方交换机从 Trunk 端口收到帧，读取 Tag 中的 VID，确定该帧属于哪个 VLAN，然后剥离 Tag，将原始帧转发给该 VLAN 内的目标 Access 端口。
 
 ## 6.7 综合示例：Web 页面请求的历程
 
