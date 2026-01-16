@@ -17,6 +17,10 @@ export default [
     link: '/computer-networking/visualization/',
     items: [
       { text: '总览', link: '/computer-networking/visualization/' },
+      { text: 'TCP 连接管理', link: '/computer-networking/visualization/tcp-connection' },
+      { text: 'DNS 域名解析', link: '/computer-networking/visualization/dns-query' },
+      { text: 'DHCP 协议流程', link: '/computer-networking/visualization/dhcp-process' },
+      { text: 'ARP 地址解析', link: '/computer-networking/visualization/arp-protocol' },
       { text: 'Dijkstra 算法可视化', link: '/computer-networking/visualization/dijkstra-algorithm' },
       { text: '距离向量 (DV) 模拟', link: '/computer-networking/visualization/distance-vector' }
     ]

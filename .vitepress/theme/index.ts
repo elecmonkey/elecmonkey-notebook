@@ -27,6 +27,10 @@ const DAGOptimizer = defineAsyncComponent(() => import('./components/compiler-pr
 // 计算机网络组件
 const DijkstraAlgorithm = defineAsyncComponent(() => import('./components/computer-networking/DijkstraAlgorithm.vue'))
 const DistanceVectorAlgorithm = defineAsyncComponent(() => import('./components/computer-networking/DistanceVectorAlgorithm.vue'))
+const TcpConnection = defineAsyncComponent(() => import('./components/computer-networking/TcpConnection.vue'))
+const DnsQuery = defineAsyncComponent(() => import('./components/computer-networking/DnsQuery.vue'))
+const DhcpProcess = defineAsyncComponent(() => import('./components/computer-networking/DhcpProcess.vue'))
+const ArpProtocol = defineAsyncComponent(() => import('./components/computer-networking/ArpProtocol.vue'))
 
 export default {
   extends: Theme,
@@ -54,6 +58,10 @@ export default {
     app.component('DAGOptimizer', DAGOptimizer)
     app.component('DijkstraAlgorithm', DijkstraAlgorithm)
     app.component('DistanceVectorAlgorithm', DistanceVectorAlgorithm)
+    app.component('TcpConnection', TcpConnection)
+    app.component('DnsQuery', DnsQuery)
+    app.component('DhcpProcess', DhcpProcess)
+    app.component('ArpProtocol', ArpProtocol)
     app.component('VisualizationLink', VisualizationLink)
   }
 }

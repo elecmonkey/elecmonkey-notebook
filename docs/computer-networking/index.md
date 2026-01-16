@@ -27,7 +27,15 @@
 
 本笔记提供了一系列交互式可视化工具，帮助理解抽象的网络协议与算法：
 
-### 网络层控制平面 (Control Plane)
+### 应用层 (Application Layer)
+- [DNS 域名解析 (迭代/递归)](./visualization/dns-query)
+- [DHCP 动态主机配置](./visualization/dhcp-process)
+
+### 传输层 (Transport Layer)
+- [TCP 连接管理 (握手/挥手)](./visualization/tcp-connection)
+
+### 网络层与链路层 (Network & Link Layer)
+- [ARP 地址解析协议](./visualization/arp-protocol)
 - [Dijkstra 最短路径算法 (链路状态)](./visualization/dijkstra-algorithm)
 - [距离向量路由算法 (Distance Vector)](./visualization/distance-vector)
 
