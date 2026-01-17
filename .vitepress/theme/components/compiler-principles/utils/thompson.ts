@@ -124,6 +124,43 @@ function infixToPostfix(regex: string): string {
   return output;
 }
 
+// Helper: Get all reachable states from a start node
+function getAllStates(start: NFAState): NFAState[] {
+  const visited = new Set<number>();
+  const queue = [start];
+  const states: NFAState[] = [];
+  visited.add(start.id);
+  states.push(start);
+
+  let head = 0;
+  while(head < queue.length){
+    const current = queue[head++];
+    for(const targets of current.transitions.values()){
+      for(const target of targets){
+        if(!visited.has(target.id)){
+          visited.add(target.id);
+          states.push(target);
+          queue.push(target);
+        }
+      }
+    }
+  }
+  return states;
+}
+
+// Helper: Redirect all transitions pointing to oldTarget to point to newTarget
+function redirectTransitions(states: NFAState[], oldTarget: NFAState, newTarget: NFAState) {
+  states.forEach(state => {
+    state.transitions.forEach((targets, symbol) => {
+      for (let i = 0; i < targets.length; i++) {
+        if (targets[i] === oldTarget) {
+          targets[i] = newTarget;
+        }
+      }
+    });
+  });
+}
+
 // 构造 NFA (支持标准版和简化版)
 export function buildNFA(regex: string, simplified: boolean = false): NFAFragment | null {
   stateIdCounter = 0; // Reset counter
@@ -170,10 +207,10 @@ export function buildNFA(regex: string, simplified: boolean = false): NFAFragmen
 
       if (simplified) {
         // Simplified Union: Common start and end states
+        // 1. Merge Starts: Create newStart and copy outgoing transitions from left/right starts
         newStart = createState();
-        newEnd = createState(true);
         
-        // Merge starts: Copy transitions from left/right start to newStart
+        // Copy transitions
         left.start.transitions.forEach((targets, symbol) => {
             targets.forEach(t => addTransition(newStart, t, symbol));
         });
@@ -181,9 +218,18 @@ export function buildNFA(regex: string, simplified: boolean = false): NFAFragmen
             targets.forEach(t => addTransition(newStart, t, symbol));
         });
         
-        // Handle ends: Add epsilon transitions to newEnd (hard to merge incoming edges)
-        addTransition(left.end, newEnd, 'ε');
-        addTransition(right.end, newEnd, 'ε');
+        // 2. Merge Ends: Redirect all transitions to left.end and right.end to a single newEnd
+        newEnd = createState(true);
+        
+        // Get all states involved in left and right fragments
+        const leftStates = getAllStates(left.start);
+        const rightStates = getAllStates(right.start);
+        
+        // Redirect incoming edges
+        redirectTransitions(leftStates, left.end, newEnd);
+        redirectTransitions(rightStates, right.end, newEnd);
+        redirectTransitions([newStart], left.end, newEnd);
+        redirectTransitions([newStart], right.end, newEnd);
         
         left.end.isAccepting = false;
         right.end.isAccepting = false;
@@ -212,16 +258,21 @@ export function buildNFA(regex: string, simplified: boolean = false): NFAFragmen
       let newStart: NFAState, newEnd: NFAState;
       
       if (simplified) {
-         // Simplified Closure: Keep standard loop structure but minimize ε-transitions if possible
-         // Merging start/end nodes in closure is complex due to loopback logic.
-         // We maintain the standard structure here as it is robust.
+         // Simplified Closure: Merge end into start, then wrap with epsilons
+         // Structure: newStart ->(ε)-> Hub ->(ε)-> newEnd
+         // Hub has the body as a loop (Start(β) and End(β) merged into Hub)
+         
+         const hub = nfa.start;
+         const allStates = getAllStates(nfa.start);
+         
+         // Redirect all edges pointing to nfa.end to point to nfa.start (Hub)
+         redirectTransitions(allStates, nfa.end, hub);
+         
          newStart = createState();
          newEnd = createState(true);
          
-         addTransition(newStart, nfa.start, 'ε');
-         addTransition(newStart, newEnd, 'ε');
-         addTransition(nfa.end, nfa.start, 'ε');
-         addTransition(nfa.end, newEnd, 'ε');
+         addTransition(newStart, hub, 'ε');
+         addTransition(hub, newEnd, 'ε');
          
          nfa.end.isAccepting = false;
          
