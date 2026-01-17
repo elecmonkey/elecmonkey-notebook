@@ -33,12 +33,128 @@ int fact(int n) {
 
 const userCode = ref(defaultCode)
 const isCustomMode = ref(false)
+const viewMode = ref<'block' | 'table'>('block')
 
 // 计算 codeLines
 const codeLines = computed(() => userCode.value.split('\n'))
 
 // 响应式 steps
 const steps = ref<ExecutionStep[]>([])
+
+// Table Row Definition
+interface TableRow {
+  offset: string
+  desc: string
+  value: string
+  isHeader?: boolean
+  frameId?: string
+  bgClass?: string
+  key: string
+}
+
+const tableRows = computed(() => {
+  const rows: TableRow[] = []
+  let offset = 0
+  
+  // Base offset
+  const BASE_ADDR = 1000
+
+  // Iterate stack from bottom to top to assign addresses
+  stack.value.forEach((frame, idx) => {
+    // 1. Control Link (Old FP)
+    rows.push({
+      offset: `+${offset}`,
+      desc: `Control Link (Old FP)`,
+      value: frame.oldFP,
+      frameId: frame.id,
+      bgClass: 'bg-control',
+      key: `${frame.id}-oldfp`
+    })
+    offset++
+
+    // 2. Return Address
+    rows.push({
+      offset: `+${offset}`,
+      desc: `Return Address`,
+      value: frame.returnAddr,
+      frameId: frame.id,
+      bgClass: 'bg-control',
+      key: `${frame.id}-retaddr`
+    })
+    offset++
+
+    // 3. Number of Parameters
+    const paramKeys = Object.keys(frame.params)
+    rows.push({
+      offset: `+${offset}`,
+      desc: `Number of Parameters`,
+      value: paramKeys.length.toString(),
+      frameId: frame.id,
+      bgClass: 'bg-meta',
+      key: `${frame.id}-numparams`
+    })
+    offset++
+
+    // 4. Parameters
+    paramKeys.forEach(key => {
+      rows.push({
+        offset: `+${offset}`,
+        desc: `Parameter ${key}`,
+        value: frame.params[key],
+        frameId: frame.id,
+        bgClass: 'bg-param',
+        key: `${frame.id}-param-${key}`
+      })
+      offset++
+    })
+
+    // 5. Locals
+    const localKeys = Object.keys(frame.locals)
+    localKeys.forEach(key => {
+      // Skip if it's also a param (the simulator sometimes duplicates args into locals)
+      if (paramKeys.includes(key)) return
+      
+      rows.push({
+        offset: `+${offset}`,
+        desc: `Local ${key}`,
+        value: frame.locals[key],
+        frameId: frame.id,
+        bgClass: 'bg-local',
+        key: `${frame.id}-local-${key}`
+      })
+      offset++
+    })
+    
+    // 6. Temporaries (if any)
+    const tempKeys = Object.keys(frame.temps)
+    tempKeys.forEach(key => {
+      rows.push({
+        offset: `+${offset}`,
+        desc: `Temp ${key}`,
+        value: frame.temps[key],
+        frameId: frame.id,
+        bgClass: 'bg-temp',
+        key: `${frame.id}-temp-${key}`
+      })
+      offset++
+    })
+
+    // 7. Return Value Placeholder
+    rows.push({
+      offset: `+${offset}`,
+      desc: `Returned Value`,
+      value: '?',
+      frameId: frame.id,
+      bgClass: 'bg-ret',
+      key: `${frame.id}-retval`
+    })
+    offset++
+  })
+
+  // Return reversed for display (High address at top)
+  return rows.reverse()
+})
+
 
 // 解析用户代码
 function parseUserCodeAndGenSteps() {
@@ -167,6 +283,7 @@ const FRAME_WIDTH = 280
             <span class="desc">{{ currentDesc }}</span>
             <span class="progress">{{ currentStepIndex + 1 }} / {{ steps.length }}</span>
           </div>
+          
           <button class="primary" @click="nextStep" :disabled="currentStepIndex === steps.length - 1">下一步</button>
           <button @click="reset">重置</button>
         </div>
@@ -174,7 +291,16 @@ const FRAME_WIDTH = 280
 
       <!-- 右侧：栈可视化 -->
       <div class="stack-panel">
-        <h3>运行时栈 (Runtime Stack)</h3>
+        <div class="panel-header">
+          <h3>运行时栈 (Runtime Stack)</h3>
+          <div class="view-toggle">
+            <label class="toggle-label">
+              <input type="checkbox" v-model="viewMode" true-value="table" false-value="block">
+              <span class="toggle-text">Table View</span>
+            </label>
+          </div>
+        </div>
+        
         <div class="stack-container">
           <div class="stack-growth-indicator">
             <span>高地址</span>
@@ -182,7 +308,7 @@ const FRAME_WIDTH = 280
             <span>低地址</span>
           </div>
 
-          <transition-group name="list" tag="div" class="stack-frames">
+          <transition-group v-if="viewMode === 'block'" name="list" tag="div" class="stack-frames">
             <div 
               v-for="(frame, idx) in stack.slice().reverse()" 
               :key="frame.id"
@@ -228,8 +354,31 @@ const FRAME_WIDTH = 280
               </div>
             </div>
           </transition-group>
+
+          <!-- Table View -->
+          <div v-else class="table-view">
+            <table class="memory-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px;">Offset</th>
+                  <th>Content</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <transition-group name="list" tag="tbody">
+                <tr v-for="row in tableRows" :key="row.key" :class="row.bgClass">
+                  <td class="cell-offset">{{ row.offset }}</td>
+                  <td class="cell-desc">{{ row.desc }}</td>
+                  <td class="cell-val">{{ row.value }}</td>
+                </tr>
+                <tr v-if="tableRows.length === 0" key="empty-row">
+                  <td colspan="3" class="empty-cell">Empty Stack</td>
+                </tr>
+              </transition-group>
+            </table>
+          </div>
           
-          <div class="empty-stack" v-if="stack.length === 0">
+          <div class="empty-stack" v-if="stack.length === 0 && viewMode === 'block'">
             栈空 (Stack Empty)
           </div>
         </div>
@@ -239,6 +388,88 @@ const FRAME_WIDTH = 280
 </template>
 
 <style scoped>
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.panel-header h3 {
+  margin: 0;
+}
+
+/* View Toggle */
+.view-toggle {
+  display: flex;
+  align-items: center;
+}
+.toggle-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9em;
+  color: var(--vp-c-text-2);
+}
+.toggle-label input {
+  margin-right: 6px;
+}
+
+/* Table View Styles */
+.table-view {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.memory-table {
+  width: 100% !important;
+  table-layout: fixed !important;
+  display: table !important;
+  border-collapse: collapse;
+  font-family: monospace;
+  font-size: 13px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.memory-table th, .memory-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.memory-table th {
+  background: #f5f5f5;
+  font-weight: bold;
+  color: #333;
+}
+
+.cell-offset {
+  width: 60px;
+  color: #888;
+  font-weight: bold;
+  text-align: center;
+}
+
+.cell-val {
+  font-weight: bold;
+  color: #d63200;
+}
+
+.bg-control { background: #fffbeb; }
+.bg-meta { background: #f3f4f6; }
+.bg-param { background: #eef2ff; }
+.bg-local { background: #f0fdf4; }
+.bg-temp { background: #fdf2f8; }
+.bg-ret { background: #fff1f2; }
+
+.empty-cell {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px;
+}
+
 .activation-record-viz {
   display: flex;
   flex-direction: column;
