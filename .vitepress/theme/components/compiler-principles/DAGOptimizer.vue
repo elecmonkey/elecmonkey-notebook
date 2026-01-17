@@ -3,15 +3,15 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { instance } from '@viz-js/viz'
 import { parseTACBlock, buildDAG, markDeadCode, reconstructCode, dagToDot, type DAGNode, type TAC } from './utils/dag-algo'
 
-// 预设案例 (Test 31 style)
-const defaultInput = `A = B + C
-B = B - D
-C = P + Q
-E = B + C
-F = B - D
-`
-// Test 61 style example could be added too
-const defaultLiveVars = 'A, E' // F is dead code if not used
+// 预设案例 (Comprehensive Optimization Showcase)
+const defaultInput = `T1 = A + B
+T2 = T1 * 1
+T3 = A + B
+T4 = T3 + 1
+T5 = T4 + 2
+K = X + Y`
+
+const defaultLiveVars = 'T2, T5'
 
 // State
 const currentStep = ref(1)
