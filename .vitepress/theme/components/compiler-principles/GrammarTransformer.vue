@@ -29,9 +29,9 @@ function analyzeAndTransform() {
     }
 
     // Check if original is LL(1)
-    const first1 = computeFirst(g)
-    const follow1 = computeFollow(g, first1)
-    const res1 = buildLL1Table(g, first1, follow1)
+    const firstRes1 = computeFirst(g)
+    const followRes1 = computeFollow(g, firstRes1.map)
+    const res1 = buildLL1Table(g, firstRes1.map, followRes1.map)
     
     // Transform
     let currentG = g;
@@ -57,9 +57,9 @@ function analyzeAndTransform() {
     transformedOutput.value = grammarToString(currentG);
 
     // Check if transformed is LL(1)
-    const first2 = computeFirst(currentG)
-    const follow2 = computeFollow(currentG, first2)
-    const res2 = buildLL1Table(currentG, first2, follow2)
+    const firstRes2 = computeFirst(currentG)
+    const followRes2 = computeFollow(currentG, firstRes2.map)
+    const res2 = buildLL1Table(currentG, firstRes2.map, followRes2.map)
 
     ll1Status.value = {
         before: res1.isLL1,
@@ -116,8 +116,10 @@ function analyzeAndTransform() {
 
       <div class="logs-box" v-if="logs.length > 0">
         <h4>Transformation Logs</h4>
-        <ul>
-          <li v-for="(log, i) in logs" :key="i">{{ log }}</li>
+        <ul class="log-list">
+          <li v-for="(log, i) in logs" :key="i" :class="{ 'log-header': log.startsWith('---'), 'log-item': !log.startsWith('---') }">
+            {{ log }}
+          </li>
         </ul>
       </div>
       <div v-else class="logs-box empty">
@@ -234,24 +236,51 @@ function analyzeAndTransform() {
 }
 
 .logs-box {
-  font-size: 0.85em;
+  font-size: 0.9em;
   color: var(--vp-c-text-2);
   background-color: var(--vp-c-bg-alt);
-  padding: 12px;
+  padding: 16px;
   border-radius: 4px;
+  border: 1px solid var(--vp-c-divider);
 }
 
 .logs-box h4 {
   margin-top: 0;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  font-weight: bold;
+  color: var(--vp-c-text-1);
 }
 
-.logs-box ul {
+.log-list {
   margin: 0;
-  padding-left: 20px;
+  padding: 0;
+  list-style: none;
+  font-family: var(--vp-font-family-mono);
+}
+
+.log-header {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: var(--vp-c-brand-1);
+  border-bottom: 1px dashed var(--vp-c-divider);
+  padding-bottom: 4px;
+}
+
+.log-header:first-child {
+  margin-top: 0;
+}
+
+.log-item {
+  padding-left: 12px;
+  margin-bottom: 4px;
+  border-left: 2px solid var(--vp-c-divider);
+  line-height: 1.5;
 }
 
 .logs-box.empty {
   font-style: italic;
+  text-align: center;
+  padding: 24px;
 }
 </style>
