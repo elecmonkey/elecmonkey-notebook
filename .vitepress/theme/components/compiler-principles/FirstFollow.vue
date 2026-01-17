@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { parseGrammar, Grammar, EPSILON } from './utils/grammar'
-import { computeFirst, computeFollow, SymbolMap } from './utils/first-follow'
+import { computeFirst, computeFollow, SymbolMap, CalculationStep } from './utils/first-follow'
 
 const defaultInput = `E -> T E'
 E' -> + T E' | ε
@@ -13,6 +13,8 @@ const input = ref(defaultInput)
 const grammar = ref<Grammar | null>(null)
 const firstSet = ref<SymbolMap | null>(null)
 const followSet = ref<SymbolMap | null>(null)
+const firstSteps = ref<CalculationStep[]>([])
+const followSteps = ref<CalculationStep[]>([])
 const errorMsg = ref('')
 
 const nonTerminalsList = computed(() => {
@@ -26,6 +28,10 @@ function formatSet(set: Set<string> | undefined): string {
   return '{ ' + Array.from(set).join(', ') + ' }'
 }
 
+function formatAdded(added: string[]): string {
+  return '{ ' + added.join(', ') + ' }'
+}
+
 function analyze() {
   errorMsg.value = ''
   try {
@@ -36,8 +42,15 @@ function analyze() {
       return
     }
     grammar.value = g
-    firstSet.value = computeFirst(g)
-    followSet.value = computeFollow(g, firstSet.value)
+    
+    const firstRes = computeFirst(g)
+    firstSet.value = firstRes.map
+    firstSteps.value = firstRes.steps
+
+    const followRes = computeFollow(g, firstRes.map)
+    followSet.value = followRes.map
+    followSteps.value = followRes.steps
+
   } catch (e: any) {
     console.error(e)
     errorMsg.value = 'Error: ' + e.message
@@ -91,6 +104,34 @@ watch(input, () => {
       
       <div class="terminals-info">
         <strong>Terminals:</strong> {{ Array.from(grammar.terminals).join(', ') }}
+      </div>
+
+      <div class="steps-container" v-if="firstSteps.length > 0 || followSteps.length > 0">
+        <h3>Calculation Process (Derivation)</h3>
+        
+        <div class="step-columns">
+          <div class="step-group">
+            <h4>FIRST Set Derivation</h4>
+            <ul class="step-list">
+              <li v-for="(step, i) in firstSteps" :key="'f-'+i">
+                  <span class="step-symbol">{{ step.symbol }}</span>: 
+                  Added <span class="step-added">{{ formatAdded(step.added) }}</span>
+                  <div class="step-reason">{{ step.reason }}</div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="step-group">
+            <h4>FOLLOW Set Derivation</h4>
+            <ul class="step-list">
+              <li v-for="(step, i) in followSteps" :key="'fo-'+i">
+                  <span class="step-symbol">{{ step.symbol }}</span>: 
+                  Added <span class="step-added">{{ formatAdded(step.added) }}</span>
+                  <div class="step-reason">{{ step.reason }}</div>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -177,5 +218,83 @@ watch(input, () => {
 .terminals-info {
   font-size: 0.9em;
   color: var(--vp-c-text-2);
+}
+
+.steps-container {
+  margin-bottom: 24px;
+  background-color: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.steps-container h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.step-columns {
+  display: flex;
+  gap: 24px;
+}
+
+.step-group {
+  flex: 1;
+}
+
+.step-group h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+  border-bottom: 1px solid var(--vp-c-divider);
+  padding-bottom: 8px;
+}
+
+.step-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9em;
+  /* max-height: 400px; */
+  /* overflow-y: auto; */
+}
+
+.step-list li {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--vp-c-divider);
+}
+
+.step-list li:last-child {
+  border-bottom: none;
+}
+
+.step-symbol {
+  font-weight: bold;
+  font-family: var(--vp-font-family-mono);
+  color: var(--vp-c-text-1);
+}
+
+.step-added {
+  font-family: var(--vp-font-family-mono);
+  color: var(--vp-c-green-1);
+  font-weight: bold;
+}
+
+.step-reason {
+  margin-top: 4px;
+  font-size: 0.9em;
+  color: var(--vp-c-text-2);
+  font-family: var(--vp-font-family-mono);
+}
+
+@media (max-width: 768px) {
+  .step-columns {
+    flex-direction: column;
+  }
 }
 </style>

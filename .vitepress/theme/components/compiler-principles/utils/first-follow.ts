@@ -4,14 +4,35 @@ import { Grammar, EPSILON, Production } from './grammar';
 export type SymbolSet = Set<string>;
 export type SymbolMap = Map<string, SymbolSet>;
 
+export interface CalculationStep {
+  symbol: string;
+  added: string[];
+  reason: string;
+}
+
+export interface FirstResult {
+  map: SymbolMap;
+  steps: CalculationStep[];
+}
+
+export interface FollowResult {
+  map: SymbolMap;
+  steps: CalculationStep[];
+}
+
 // 计算 First 集
-export function computeFirst(grammar: Grammar): SymbolMap {
+export function computeFirst(grammar: Grammar): FirstResult {
   const first: SymbolMap = new Map();
+  const steps: CalculationStep[] = [];
 
   // 初始化：所有终结符的 First 集包含自身
   grammar.terminals.forEach(t => {
     first.set(t, new Set([t]));
+    // steps.push({ symbol: t, added: [t], reason: 'Terminal' }); // Usually not shown
   });
+  // 特殊处理：EPSILON 的 First 集包含自身
+  first.set(EPSILON, new Set([EPSILON]));
+
   // 初始化：非终结符 First 集为空
   grammar.nonTerminals.forEach(nt => {
     first.set(nt, new Set());
@@ -25,12 +46,19 @@ export function computeFirst(grammar: Grammar): SymbolMap {
       const { lhs, rhs } = prod;
       const lhsFirst = first.get(lhs)!;
       const initialSize = lhsFirst.size;
+      const newAdditions: string[] = [];
 
       // 如果右部是 epsilon
       if (rhs.length === 1 && rhs[0] === EPSILON) {
         if (!lhsFirst.has(EPSILON)) {
           lhsFirst.add(EPSILON);
+          newAdditions.push(EPSILON);
           changed = true;
+          steps.push({
+            symbol: lhs,
+            added: [EPSILON],
+            reason: `${lhs} -> ε`
+          });
         }
         continue;
       }
@@ -39,20 +67,30 @@ export function computeFirst(grammar: Grammar): SymbolMap {
       let allNullable = true;
       for (const symbol of rhs) {
         const symbolFirst = first.get(symbol);
-        // 如果 symbol 不在 first map 中（可能是未定义的符号），跳过或报错
-        // 这里假设所有符号都在 map 中（由 grammar 解析保证）
         if (!symbolFirst) {
-            // Should be unreachable if parser works correctly
             allNullable = false;
             break;
         }
 
         // 把 First(symbol) - {ε} 加入 First(lhs)
+        let addedFromSymbol = false;
+        const currentAdditions: string[] = [];
+        
         for (const f of symbolFirst) {
           if (f !== EPSILON && !lhsFirst.has(f)) {
             lhsFirst.add(f);
-            changed = true; // 注意：只要有新元素加入，即使不是因为本轮循环的后续逻辑，也算 changed，但这里是直接操作 set
+            currentAdditions.push(f);
+            changed = true; 
+            addedFromSymbol = true;
           }
+        }
+        
+        if (addedFromSymbol) {
+             steps.push({
+                symbol: lhs,
+                added: currentAdditions,
+                reason: `${lhs} -> ... ${symbol} ... (First(${symbol}) ⊆ First(${lhs}))`
+             });
         }
 
         // 检查 symbol 是否 nullable
@@ -66,22 +104,24 @@ export function computeFirst(grammar: Grammar): SymbolMap {
       if (allNullable) {
         if (!lhsFirst.has(EPSILON)) {
           lhsFirst.add(EPSILON);
-          // changed = true; // 这里不能直接在这里置 true，因为上面的逻辑可能已经置了
+          changed = true;
+          steps.push({
+            symbol: lhs,
+            added: [EPSILON],
+            reason: `${lhs} -> ${rhs.join(' ')} (All Nullable)`
+          });
         }
-      }
-      
-      if (lhsFirst.size > initialSize) {
-        changed = true;
       }
     }
   }
 
-  return first;
+  return { map: first, steps };
 }
 
 // 计算 Follow 集
-export function computeFollow(grammar: Grammar, first: SymbolMap): SymbolMap {
+export function computeFollow(grammar: Grammar, first: SymbolMap): FollowResult {
   const follow: SymbolMap = new Map();
+  const steps: CalculationStep[] = [];
   
   // 初始化
   grammar.nonTerminals.forEach(nt => {
@@ -92,6 +132,11 @@ export function computeFollow(grammar: Grammar, first: SymbolMap): SymbolMap {
   const startFollow = follow.get(grammar.startSymbol);
   if (startFollow) {
     startFollow.add('$');
+    steps.push({
+        symbol: grammar.startSymbol,
+        added: ['$'],
+        reason: 'Start Symbol'
+    });
   }
 
   let changed = true;
@@ -113,16 +158,28 @@ export function computeFollow(grammar: Grammar, first: SymbolMap): SymbolMap {
         // 寻找 β (rhs[i+1]...rhs[k])
         // First(β) 的非 ε 元素加入 Follow(B)
         let betaNullable = true;
+        let betaStr = '';
         
         for (let j = i + 1; j < rhs.length; j++) {
             const betaSymbol = rhs[j];
+            betaStr += betaSymbol + ' ';
             const betaFirst = first.get(betaSymbol)!;
             
+            const currentAdditions: string[] = [];
             // Add First(betaSymbol) \ {ε} to Follow(B)
             for (const f of betaFirst) {
-                if (f !== EPSILON) {
+                if (f !== EPSILON && !BFollow.has(f)) {
                     BFollow.add(f);
+                    currentAdditions.push(f);
                 }
+            }
+            
+            if (currentAdditions.length > 0) {
+                 steps.push({
+                    symbol: B,
+                    added: currentAdditions,
+                    reason: `${lhs} -> ... ${B} ${betaSymbol} ... (First(${betaSymbol}) ⊆ Follow(${B}))`
+                 });
             }
 
             if (!betaFirst.has(EPSILON)) {
@@ -134,8 +191,19 @@ export function computeFollow(grammar: Grammar, first: SymbolMap): SymbolMap {
         // 规则 3: 如果 A -> α B 或 A -> α B β 且 First(β) 包含 ε
         // 则 Follow(A) 加入 Follow(B)
         if (betaNullable) {
+            const currentAdditions: string[] = [];
             for (const f of lhsFollow) {
-                BFollow.add(f);
+                if (!BFollow.has(f)) {
+                    BFollow.add(f);
+                    currentAdditions.push(f);
+                }
+            }
+            if (currentAdditions.length > 0) {
+                 steps.push({
+                    symbol: B,
+                    added: currentAdditions,
+                    reason: `${lhs} -> ... ${B} ... (Follow(${lhs}) ⊆ Follow(${B}))`
+                 });
             }
         }
 
@@ -146,5 +214,5 @@ export function computeFollow(grammar: Grammar, first: SymbolMap): SymbolMap {
     }
   }
 
-  return follow;
+  return { map: follow, steps };
 }

@@ -49,12 +49,12 @@ function analyze() {
       return
     }
     grammar.value = g
-    const first = computeFirst(g)
-    firstSet.value = first
-    const follow = computeFollow(g, first)
-    followSet.value = follow
+    const firstRes = computeFirst(g)
+    firstSet.value = firstRes.map
+    const followRes = computeFollow(g, firstRes.map)
+    followSet.value = followRes.map
     
-    ll1Result.value = buildLL1Table(g, first, follow)
+    ll1Result.value = buildLL1Table(g, firstRes.map, followRes.map)
 
   } catch (e: any) {
     console.error(e)
