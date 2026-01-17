@@ -252,7 +252,7 @@ const FRAME_WIDTH = 280
   gap: 24px;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1405px) {
   .layout {
     grid-template-columns: 1fr;
   }

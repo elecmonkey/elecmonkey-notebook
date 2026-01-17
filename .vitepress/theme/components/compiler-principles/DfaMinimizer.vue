@@ -168,6 +168,7 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .input-group {
