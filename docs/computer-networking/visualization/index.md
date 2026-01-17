@@ -25,6 +25,13 @@ pageClass: no-print-button
   - 客户端/服务器状态机可视化
   - 报文交互动画 (SYN, FIN, ACK)
 
+### [TCP 拥塞控制](./tcp-congestion)
+模拟 TCP Reno/Tahoe 的拥塞控制过程，观察 cwnd 和 ssthresh 的变化。
+- **功能特性**：
+  - 动态折线图展示 cwnd 变化
+  - 模拟超时与 3 个重复 ACK 事件
+  - 区分慢启动、拥塞避免与快速恢复阶段
+
 ## 网络层 (Network Layer)
 
 ### [ARP 地址解析](./arp-protocol)

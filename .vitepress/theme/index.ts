@@ -32,6 +32,7 @@ const TcpConnection = defineAsyncComponent(() => import('./components/computer-n
 const DnsQuery = defineAsyncComponent(() => import('./components/computer-networking/DnsQuery.vue'))
 const DhcpProcess = defineAsyncComponent(() => import('./components/computer-networking/DhcpProcess.vue'))
 const ArpProtocol = defineAsyncComponent(() => import('./components/computer-networking/ArpProtocol.vue'))
+const TcpCongestionControl = defineAsyncComponent(() => import('./components/computer-networking/TcpCongestionControl.vue'))
 
 export default {
   extends: Theme,
@@ -63,6 +64,7 @@ export default {
     app.component('DnsQuery', DnsQuery)
     app.component('DhcpProcess', DhcpProcess)
     app.component('ArpProtocol', ArpProtocol)
+    app.component('TcpCongestionControl', TcpCongestionControl)
     app.component('VisualizationLink', VisualizationLink)
     app.component('FeedbackFooter', FeedbackFooter)
   }

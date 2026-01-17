@@ -18,6 +18,7 @@ export default [
     items: [
       { text: '总览', link: '/computer-networking/visualization/' },
       { text: 'TCP 连接管理', link: '/computer-networking/visualization/tcp-connection' },
+      { text: 'TCP 拥塞控制', link: '/computer-networking/visualization/tcp-congestion' },
       { text: 'DNS 域名解析', link: '/computer-networking/visualization/dns-query' },
       { text: 'DHCP 协议流程', link: '/computer-networking/visualization/dhcp-process' },
       { text: 'ARP 地址解析', link: '/computer-networking/visualization/arp-protocol' },

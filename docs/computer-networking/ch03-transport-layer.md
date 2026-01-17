@@ -546,6 +546,8 @@ digraph TCP_State_Machine {
 #### 2. 拥塞窗口演进图 (Evolution Chart)
 下图展示了 Tahoe 和 Reno 在面对丢包时的不同反应（以第 8 轮收到 3 个重复 ACK 为例）。
 
+<VisualizationLink title="TCP 拥塞控制可视化实验" href="/computer-networking/visualization/tcp-congestion" desc="亲自模拟这一过程，观察 cwnd 和 ssthresh 的动态变化。" />
+
 ```mermaid
 %%{init: { 'theme': 'default' } }%%
 xychart-beta
