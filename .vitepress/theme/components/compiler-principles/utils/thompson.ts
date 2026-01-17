@@ -305,7 +305,16 @@ export function buildNFA(regex: string, simplified: boolean = false): NFAFragmen
      throw new Error('Invalid regex: incomplete expression or multiple fragments');
   }
 
-  return stack[0];
+  const finalNFA = stack[0];
+  
+  // Final Adjustment: Add a dedicated Start Node (epsilon transition to original start)
+  // This ensures the start state has no incoming edges (unless it's a loop, but standard NFA usually separates start)
+  // Teacher's preference: Start ->(ε)-> RealStart
+  
+  const dedicatedStart = createState();
+  addTransition(dedicatedStart, finalNFA.start, '');
+  
+  return { start: dedicatedStart, end: finalNFA.end };
 }
 
 // 转换为 Mermaid 格式
