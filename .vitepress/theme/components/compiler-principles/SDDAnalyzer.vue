@@ -58,6 +58,49 @@ B -> 1`,
       'B -> 0': (c, n) => n.attributes.val = 0,
       'B -> 1': (c, n) => n.attributes.val = 1
     }
+  },
+  {
+    name: '列表元素计数 (S-属性)',
+    grammarStr: `S -> L
+L -> L , id
+L -> id`,
+    inputStr: 'a , b , c',
+    displayRules: {
+      'S -> L': 'S.cnt = L.cnt',
+      'L -> L , id': 'L.cnt = L1.cnt + 1',
+      'L -> id': 'L.cnt = 1'
+    },
+    computeActions: {
+      'S -> L': (c, n) => n.attributes.cnt = c[0].attributes.cnt,
+      'L -> L , id': (c, n) => n.attributes.cnt = c[0].attributes.cnt + 1,
+      'L -> id': (c, n) => n.attributes.cnt = 1
+    }
+  },
+  {
+    name: '中缀转后缀表达式 (S-属性)',
+    grammarStr: `E -> E + T
+E -> T
+T -> T * F
+T -> F
+F -> ( E )
+F -> id`,
+    inputStr: 'a + b * c',
+    displayRules: {
+      'E -> E + T': 'E.code = E1.code || T.code || "+"',
+      'E -> T': 'E.code = T.code',
+      'T -> T * F': 'T.code = T1.code || F.code || "*"',
+      'T -> F': 'T.code = F.code',
+      'F -> ( E )': 'F.code = E.code',
+      'F -> id': 'F.code = id.lexval'
+    },
+    computeActions: {
+      'E -> E + T': (c, n) => n.attributes.code = c[0].attributes.code + ' ' + c[2].attributes.code + ' +',
+      'E -> T': (c, n) => n.attributes.code = c[0].attributes.code,
+      'T -> T * F': (c, n) => n.attributes.code = c[0].attributes.code + ' ' + c[2].attributes.code + ' *',
+      'T -> F': (c, n) => n.attributes.code = c[0].attributes.code,
+      'F -> ( E )': (c, n) => n.attributes.code = c[1].attributes.code,
+      'F -> id': (c, n) => n.attributes.code = c[0].attributes.lexval
+    }
   }
 ]
 
@@ -155,8 +198,8 @@ function parse() {
   reset()
   try {
     const grammar = parseGrammar(currentScenario.value.grammarStr)
-    const firstMap = computeFirst(grammar)
-    const lr1Table = buildLR1Table(grammar, firstMap)
+    const firstRes = computeFirst(grammar)
+    const lr1Table = buildLR1Table(grammar, firstRes.map)
     
     // 简单的 token 分割：按空格分，保留数字作为一个 token，符号作为一个 token
     // 这里为了适配 '3 * 5' 这种，我们需要更智能一点的 tokenizer
