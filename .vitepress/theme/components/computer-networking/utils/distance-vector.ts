@@ -25,7 +25,7 @@ export class DVSimulator {
   links: Link[]
   nodes: string[] = ['x', 'y', 'z']
   poisonReverse: boolean = false
-  maxSteps: number = 20
+  maxSteps: number = 1000
 
   constructor(poisonReverse: boolean = false) {
     this.poisonReverse = poisonReverse

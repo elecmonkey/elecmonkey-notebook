@@ -134,7 +134,7 @@ const play = () => {
     } else {
       pause()
     }
-  }, 1500) // 1.5s per step
+  }, 1000) // 1.0s per step
 }
 
 const pause = () => {
