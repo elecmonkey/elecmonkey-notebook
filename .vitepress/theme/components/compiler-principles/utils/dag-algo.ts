@@ -8,7 +8,7 @@ export interface TAC {
 }
 
 export interface DAGNode {
-  id: number;
+  id: string;
   op: string; // 'leaf' for variables/constants
   val?: string; // value for leaf nodes (e.g. 'a', '10')
   left?: DAGNode;
@@ -106,7 +106,7 @@ export function buildDAG(tacs: TAC[], enableAssociativeFolding: boolean = false)
     }
     
     const node: DAGNode = {
-      id: nodeIdCounter++,
+      id: `n${nodeIdCounter++}`,
       op: 'leaf',
       val: val,
       identifiers: [],
@@ -243,7 +243,7 @@ export function buildDAG(tacs: TAC[], enableAssociativeFolding: boolean = false)
       node = valueMap.get(key)!;
     } else {
       node = {
-        id: nodeIdCounter++,
+        id: `n${nodeIdCounter++}`,
         op: tac.op,
         left: leftNode,
         right: rightNode,
@@ -283,7 +283,7 @@ export function buildDAG(tacs: TAC[], enableAssociativeFolding: boolean = false)
     }
   });
 
-  return { nodes, rootNodes: nodes.filter(n => !valueMap.has(n.id as any)) }; // rootNodes logic is tricky, just return all nodes
+  return { nodes, rootNodes: nodes }; 
 }
 
 // 3. Mark Dead Code
@@ -331,7 +331,7 @@ export function reconstructCode(nodes: DAGNode[]): string[] {
     // A 是该节点上的一个变量名。如果没有变量名附着（例如临时结果），我们需要生成临时变量。
     // 但根据题目，通常会有变量附着。如果没有，说明这个计算是中间步骤，需要生成临时变量。
     
-    let target = node.identifiers.length > 0 ? node.identifiers[0] : `t_${node.id}`;
+    let target = node.identifiers.length > 0 ? node.identifiers[0] : node.id;
     
     // 左操作数
     let arg1 = getOperandName(node.left!);
@@ -356,7 +356,7 @@ function getOperandName(node: DAGNode): string {
     return node.val || '?';
   } else {
     // 内部节点，使用其关联的第一个变量名，或者临时名
-    return node.identifiers.length > 0 ? node.identifiers[0] : `t_${node.id}`;
+    return node.identifiers.length > 0 ? node.identifiers[0] : node.id;
   }
 }
 
@@ -366,6 +366,26 @@ export function dagToDot(nodes: DAGNode[], showLiveness: boolean = true): string
   dot += '  rankdir=BT;\n'; // Bottom-up usually better for expression trees
   dot += '  node [shape=circle, fontname="Helvetica"];\n';
   
+  // Helper for HTML escaping
+  const escapeHtml = (str: string) => str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  // Helper for Unicode Subscript
+  const toSubscript = (numStr: string) => {
+    const map: {[key: string]: string} = {
+      '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+      '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+    };
+    return numStr.split('').map(c => map[c] || c).join('');
+  };
+
+  // Format ID: n1 -> n₁ (Using Unicode instead of <SUB> for better vertical alignment)
+  const formatId = (id: string) => {
+    if (id.match(/^n\d+$/)) {
+      return `n${toSubscript(id.substring(1))}`;
+    }
+    return escapeHtml(id);
+  }
+
   nodes.forEach(node => {
     // Style
     let nodeColor, nodeFontColor, nodeStyle, nodeFillColor;
@@ -392,20 +412,28 @@ export function dagToDot(nodes: DAGNode[], showLiveness: boolean = true): string
       edgeStyle = isLive ? 'solid' : 'dashed';
     }
     
-    // Label
-    let label = '';
+    // Label Construction (HTML-like)
+    let labelHtml = "";
+    
+    // 1. Node ID (top line)
+    labelHtml += formatId(node.id);
+    labelHtml += "<BR/>";
+    
+    // 2. Main content (op or val)
     if (node.op === 'leaf') {
-      label = node.val || '?';
+      labelHtml += escapeHtml(node.val || '?');
     } else {
-      label = node.op;
+      labelHtml += escapeHtml(node.op);
     }
     
-    // Attached identifiers
+    // 3. Attached identifiers
     if (node.identifiers.length > 0) {
-      label += `\\n{${node.identifiers.join(',')}}`;
+      labelHtml += "<BR/><FONT POINT-SIZE=\"10\">{";
+      labelHtml += node.identifiers.map(escapeHtml).join(',');
+      labelHtml += "}</FONT>";
     }
     
-    dot += `  ${node.id} [label="${label}", color="${nodeColor}", fontcolor="${nodeFontColor}", style="${nodeStyle}", fillcolor="${nodeFillColor}"];\n`;
+    dot += `  ${node.id} [label=<${labelHtml}>, color="${nodeColor}", fontcolor="${nodeFontColor}", style="${nodeStyle}", fillcolor="${nodeFillColor}"];\n`;
     
     // Edges
     if (node.left) {
