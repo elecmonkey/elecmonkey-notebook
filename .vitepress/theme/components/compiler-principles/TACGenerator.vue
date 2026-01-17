@@ -475,7 +475,6 @@ generateTAC()
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 20px;
-  height: 500px;
 }
 
 @media (max-width: 960px) {
@@ -506,9 +505,10 @@ textarea {
   border-radius: 4px;
   padding: 12px;
   font-family: monospace;
-  resize: none;
+  resize: vertical;
   font-size: 14px;
   line-height: 1.6;
+  min-height: 400px;
 }
 
 .controls {
