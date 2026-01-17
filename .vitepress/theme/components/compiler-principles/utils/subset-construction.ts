@@ -193,17 +193,20 @@ export function dfaToDot(startState: DFAState, direction: 'LR' | 'TD' = 'LR'): s
     // 注意：Graphviz label 支持 HTML-like 标签，或者 \n 换行
     const nfaIds = Array.from(state.nfaStates).sort((a,b)=>a-b).join(',');
     
-    if (state.isStart) {
-        label = `${state.id}\\n{${nfaIds}}`;
-        fillcolor = '#e1f5fe';
-        color = '#01579b';
-    } else if (state.isAccepting) {
+    // 统一设置 label
+    label = `${state.id}\\n{${nfaIds}}`;
+
+    // 优先判断接受态，设置双圈
+    if (state.isAccepting) {
         shape = 'doublecircle';
         fillcolor = '#e8f5e9';
         color = '#2e7d32';
-        label = `${state.id}\\n{${nfaIds}}`;
-    } else {
-        label = `${state.id}\\n{${nfaIds}}`;
+    }
+
+    // 如果是开始态，覆盖颜色，但保持形状（如果是接受态则保持双圈）
+    if (state.isStart) {
+        fillcolor = '#e1f5fe';
+        color = '#01579b';
     }
 
     // 动态调整节点大小和字体
