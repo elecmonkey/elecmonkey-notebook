@@ -161,6 +161,42 @@ function redirectTransitions(states: NFAState[], oldTarget: NFAState, newTarget:
   });
 }
 
+// Helper: Renumber states continuously from 0 (BFS order)
+function renumberNFA(fragment: NFAFragment) {
+  const visited = new Set<NFAState>();
+  const queue: NFAState[] = [fragment.start];
+  visited.add(fragment.start);
+  
+  const allStates: NFAState[] = [];
+  
+  let head = 0;
+  while(head < queue.length){
+    const current = queue[head++];
+    allStates.push(current);
+    
+    // Deterministic traversal order
+    const symbols = Array.from(current.transitions.keys()).sort();
+    
+    for(const symbol of symbols){
+       const targets = current.transitions.get(symbol)!;
+       // Keep relative order of branches stable based on original creation order (id)
+       targets.sort((a,b) => a.id - b.id);
+       
+       for(const target of targets){
+         if(!visited.has(target)){
+           visited.add(target);
+           queue.push(target);
+         }
+       }
+    }
+  }
+  
+  // Renumber
+  allStates.forEach((state, index) => {
+    state.id = index;
+  });
+}
+
 // 构造 NFA (支持标准版和简化版)
 export function buildNFA(regex: string, simplified: boolean = false): NFAFragment | null {
   stateIdCounter = 0; // Reset counter
@@ -312,9 +348,14 @@ export function buildNFA(regex: string, simplified: boolean = false): NFAFragmen
   // Teacher's preference: Start ->(ε)-> RealStart
   
   const dedicatedStart = createState();
-  addTransition(dedicatedStart, finalNFA.start, '');
+  addTransition(dedicatedStart, finalNFA.start, 'ε');
   
-  return { start: dedicatedStart, end: finalNFA.end };
+  const result = { start: dedicatedStart, end: finalNFA.end };
+
+  // Renumber states to be continuous starting from 0
+  renumberNFA(result);
+
+  return result;
 }
 
 // 转换为 Mermaid 格式
@@ -433,7 +474,6 @@ export function nfaToDot(nfa: NFAFragment, direction: 'LR' | 'TD' = 'LR'): strin
     let color = '#333';
     
     if (state === nfa.start) {
-      label = 'start';
       fillcolor = '#e1f5fe';
       color = '#01579b';
     }
@@ -442,14 +482,9 @@ export function nfaToDot(nfa: NFAFragment, direction: 'LR' | 'TD' = 'LR'): strin
       shape = 'doublecircle';
       fillcolor = '#e8f5e9';
       color = '#2e7d32';
-      if (state === nfa.start) {
-         label = 'start/end';
-      } else {
-         label = 'end';
-      }
     }
 
-    dot += `  ${state.id} [label="${label}", shape=${shape}, fillcolor="${fillcolor}", color="${color}"];\n`;
+    dot += `  ${state.id} [label="${state.id}", shape=${shape}, fillcolor="${fillcolor}", color="${color}"];\n`;
   });
 
   // 3. 定义边 (关键优化：利用 weight 区分骨干和旁路)
