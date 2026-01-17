@@ -33,6 +33,7 @@
 
 ### 传输层 (Transport Layer)
 - [TCP 连接管理 (握手/挥手)](./visualization/tcp-connection)
+- [TCP 拥塞控制 (Reno/Tahoe)](./visualization/tcp-congestion)
 
 ### 网络层与链路层 (Network & Link Layer)
 - [ARP 地址解析协议](./visualization/arp-protocol)
@@ -41,6 +42,7 @@
 
 ## 参考资料
 
+- River 的计算机网络笔记 - [https://notes.river177.com/Network/](https://notes.river177.com/Network/)
 - 《计算机网络：自顶向下方法》(Computer Networking: A Top-Down Approach) — James F. Kurose & Keith W. Ross
 - 《TCP/IP Illustrated》— W. Richard Stevens
 - RFC 文档集合 - [https://www.rfc-editor.org/](https://www.rfc-editor.org/)
