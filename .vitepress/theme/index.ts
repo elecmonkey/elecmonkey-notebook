@@ -8,6 +8,7 @@ import SubjectCard from './components/SubjectCard.vue'
 import SubjectCardContainer from './components/SubjectCardContainer.vue'
 import PrintButtons from './components/PrintButtons.vue'
 import VisualizationLink from './components/VisualizationLink.vue'
+import FeedbackFooter from './components/FeedbackFooter.vue'
 
 // 异步加载编译原理相关组件，避免污染主包和非相关页面
 const RegexToNfa = defineAsyncComponent(() => import('./components/compiler-principles/RegexToNfa.vue'))
@@ -63,5 +64,6 @@ export default {
     app.component('DhcpProcess', DhcpProcess)
     app.component('ArpProtocol', ArpProtocol)
     app.component('VisualizationLink', VisualizationLink)
+    app.component('FeedbackFooter', FeedbackFooter)
   }
 }

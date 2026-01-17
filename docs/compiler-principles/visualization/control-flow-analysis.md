@@ -14,3 +14,5 @@ pageClass: visualization-page no-print-button
 4. **回边与循环**：识别回边（Back Edge）和自然循环。
 
 <ControlFlowAnalyzer />
+
+<FeedbackFooter />

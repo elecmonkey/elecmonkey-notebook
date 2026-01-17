@@ -20,3 +20,5 @@ pageClass: visualization-page no-print-button
   - z 收到 y 的更新后，更新代价为 $c(z,y) + D_y(x) = 1 + 6 = 7$。
   - 如此循环，直到代价超过 50（z-x 直接链路）。
 - **毒性逆转 (Poison Reverse)**：如果 z 经由 y 到达 x，则 z 通告给 y 的 $D_z(x) = \infty$，从而阻止 y 选路回环。
+
+<FeedbackFooter />

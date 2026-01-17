@@ -8,3 +8,5 @@ pageClass: visualization-page no-print-button
 输入正则表达式，先生成 DFA，然后演示使用 **Hopcroft 算法 (划分等价类)** 进行最小化的过程。
 
 <DfaMinimizer />
+
+<FeedbackFooter />

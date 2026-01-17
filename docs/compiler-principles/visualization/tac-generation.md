@@ -13,3 +13,5 @@ pageClass: visualization-page no-print-button
 3. **临时变量**：观察编译器自动生成的 `t1`, `t2` 等临时变量。
 
 <TACGenerator />
+
+<FeedbackFooter />

@@ -13,3 +13,5 @@ pageClass: visualization-page no-print-button
 3. **递归**: 观察递归调用时，栈中如何同时存在多个 `fact` 函数的活动记录。
 
 <ActivationRecord />
+
+<FeedbackFooter />

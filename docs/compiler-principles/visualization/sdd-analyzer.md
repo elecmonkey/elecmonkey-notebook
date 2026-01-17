@@ -13,3 +13,5 @@ pageClass: visualization-page no-print-button
 3. 验证语义规则的执行逻辑。
 
 <SDDAnalyzer />
+
+<FeedbackFooter />

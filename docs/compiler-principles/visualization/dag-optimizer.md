@@ -33,3 +33,5 @@ pageClass: visualization-page no-print-button
     *   将变量 A 附加到该结果节点上。
 2.  **标记活跃节点**：根据题目给定的“最后会被用到的变量”（Live-out Variables），在 DAG 上进行标记。
 3.  **重构代码**：仅为被标记为“活跃”的节点生成三地址码。
+
+<FeedbackFooter />
