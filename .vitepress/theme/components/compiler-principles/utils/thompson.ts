@@ -343,19 +343,10 @@ export function buildNFA(regex: string, simplified: boolean = false): NFAFragmen
 
   const finalNFA = stack[0];
   
-  // Final Adjustment: Add a dedicated Start Node (epsilon transition to original start)
-  // This ensures the start state has no incoming edges (unless it's a loop, but standard NFA usually separates start)
-  // Teacher's preference: Start ->(ε)-> RealStart
-  
-  const dedicatedStart = createState();
-  addTransition(dedicatedStart, finalNFA.start, 'ε');
-  
-  const result = { start: dedicatedStart, end: finalNFA.end };
-
   // Renumber states to be continuous starting from 0
-  renumberNFA(result);
+  renumberNFA(finalNFA);
 
-  return result;
+  return finalNFA;
 }
 
 // 转换为 Mermaid 格式
@@ -442,6 +433,10 @@ export function nfaToDot(nfa: NFAFragment, direction: 'LR' | 'TD' = 'LR'): strin
   dot += '  graph [bgcolor="transparent", nodesep=0.5, ranksep=0.5, splines=spline];\n';
   dot += '  node [fontname="Helvetica", fontsize=14, shape=circle, fixedsize=true, width=0.6, height=0.6, style="filled", fillcolor="white", color="#333", penwidth=1.5];\n';
   dot += '  edge [fontname="Helvetica", fontsize=12, arrowsize=0.8];\n';
+
+  // Add visual start node (not part of the graph logic)
+  dot += '  start [shape=none, label="start"];\n';
+  dot += `  start -> ${nfa.start.id} [penwidth=1.5];\n`;
 
   // 1. 收集所有状态和边 (使用简单的遍历，不再计算层级)
   const visited = new Set<number>();

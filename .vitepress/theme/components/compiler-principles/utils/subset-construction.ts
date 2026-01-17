@@ -159,6 +159,10 @@ export function dfaToDot(startState: DFAState, direction: 'LR' | 'TD' = 'LR'): s
   dot += '  node [fontname="Helvetica", fontsize=14, shape=circle, fixedsize=true, width=0.8, height=0.8, style="filled", fillcolor="white", color="#333", penwidth=1.5];\n';
   dot += '  edge [fontname="Helvetica", fontsize=12, arrowsize=0.8];\n';
 
+  // Add visual start node
+  dot += '  start [shape=none, label="start"];\n';
+  dot += `  start -> ${startState.id} [penwidth=1.5];\n`;
+
   const visited = new Set<number>();
   const queue = [startState];
   const states: DFAState[] = [];
@@ -190,18 +194,14 @@ export function dfaToDot(startState: DFAState, direction: 'LR' | 'TD' = 'LR'): s
     const nfaIds = Array.from(state.nfaStates).sort((a,b)=>a-b).join(',');
     
     if (state.isStart) {
-        label = `start\\n{${nfaIds}}`;
+        label = `${state.id}\\n{${nfaIds}}`;
         fillcolor = '#e1f5fe';
         color = '#01579b';
     } else if (state.isAccepting) {
         shape = 'doublecircle';
         fillcolor = '#e8f5e9';
         color = '#2e7d32';
-        if (state.isStart) { // start + accept
-             label = `start/end\\n{${nfaIds}}`;
-        } else {
-             label = `end\\n{${nfaIds}}`;
-        }
+        label = `${state.id}\\n{${nfaIds}}`;
     } else {
         label = `${state.id}\\n{${nfaIds}}`;
     }

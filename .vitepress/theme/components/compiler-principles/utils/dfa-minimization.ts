@@ -190,6 +190,10 @@ export function minDfaToDot(startState: DFAState, direction: 'LR' | 'TD' = 'LR')
   dot += '  node [fontname="Helvetica", fontsize=14, shape=circle, fixedsize=true, width=0.8, height=0.8, style="filled", fillcolor="white", color="#333", penwidth=1.5];\n';
   dot += '  edge [fontname="Helvetica", fontsize=12, arrowsize=0.8];\n';
 
+  // Add visual start node
+  dot += '  start [shape=none, label="start"];\n';
+  dot += `  start -> ${startState.id} [penwidth=1.5];\n`;
+
   // 收集状态 (BFS)
   const visited = new Set<number>();
   const queue = [startState];
@@ -222,18 +226,20 @@ export function minDfaToDot(startState: DFAState, direction: 'LR' | 'TD' = 'LR')
     // label += `\\n{${nfaIds}}`; // 如果太长可能会爆
 
     if (state.isStart) {
-        label = `start\\n${label}`;
+        // label = `start\\n${label}`;
         fillcolor = '#e1f5fe';
         color = '#01579b';
     } else if (state.isAccepting) {
         shape = 'doublecircle';
         fillcolor = '#e8f5e9';
         color = '#2e7d32';
+        /*
         if (state.isStart) {
              label = `start/end\\n${label}`;
         } else {
              label = `end\\n${label}`;
         }
+        */
     }
 
     dot += `  ${state.id} [label="${label}", shape=${shape}, fillcolor="${fillcolor}", color="${color}"];\n`;

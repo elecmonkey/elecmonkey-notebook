@@ -7,6 +7,7 @@ import { minimizeDFA, MinimizedDFA, minDfaToDot } from './utils/dfa-minimization
 
 const regexInput = ref('(a|b)*abb')
 const direction = ref<'LR' | 'TD'>('LR')
+const isSimplified = ref(false)
 const minResult = ref<MinimizedDFA | null>(null)
 const errorMsg = ref('')
 const initialContainerRef = ref<HTMLElement | null>(null)
@@ -23,7 +24,7 @@ async function updateDiagram() {
 
   try {
     // 1. Regex -> NFA -> DFA (Initial)
-    const nfa = buildNFA(regexInput.value)
+    const nfa = buildNFA(regexInput.value, isSimplified.value)
     if (!nfa) {
       errorMsg.value = 'Invalid Regex'
       return
@@ -73,6 +74,11 @@ function toggleDirection() {
   updateDiagram()
 }
 
+function toggleMode() {
+  isSimplified.value = !isSimplified.value
+  updateDiagram()
+}
+
 onMounted(() => {
   updateDiagram()
 })
@@ -93,6 +99,9 @@ onMounted(() => {
         </div>
         <button class="toggle-btn" @click="toggleDirection">
           Direction: {{ direction === 'LR' ? 'Left to Right' : 'Top to Down' }}
+        </button>
+        <button class="toggle-btn" @click="toggleMode">
+          Mode: {{ isSimplified ? 'Simplified (Compact)' : 'Standard (Thompson)' }}
         </button>
       </div>
       <div class="hint">
