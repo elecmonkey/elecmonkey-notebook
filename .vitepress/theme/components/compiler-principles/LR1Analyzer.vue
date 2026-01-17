@@ -76,10 +76,10 @@ function analyze() {
       return
     }
     grammar.value = g
-    const first = computeFirst(g)
-    firstSet.value = first
+    const firstRes = computeFirst(g)
+    firstSet.value = firstRes.map
     
-    lr1Result.value = buildLR1Table(g, first)
+    lr1Result.value = buildLR1Table(g, firstRes.map)
 
   } catch (e: any) {
     console.error(e)
