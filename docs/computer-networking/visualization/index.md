@@ -37,6 +37,20 @@ pageClass: no-print-button
 ### [ARP 地址解析](./arp-protocol)
 演示 ARP 请求与响应过程及缓存表更新。
 
+### [OSPF 域内路由协议](./ospf-protocol)
+可视化演示 OSPF 的邻居发现、DR/BDR 选举、LSA 泛洪与 SPF 计算过程。
+- **功能特性**：
+  - 动态拓扑展示 (Broadcast & P2P)
+  - 逐步演示协议状态机 (Hello -> Full)
+  - 实时查看 LSDB 与路由表
+
+### [BGP 域间路由协议](./bgp-protocol)
+可视化演示 BGP 在 AS 间的路由传播与路径属性变化。
+- **功能特性**：
+  - eBGP 与 iBGP 会话建立
+  - 路由更新动画与属性追踪 (AS-PATH, NEXT-HOP)
+  - BGP 路由表查看
+
 ### [Dijkstra 最短路径算法](./dijkstra-algorithm)
 可视化演示链路状态（Link-State）路由算法的执行过程。
 - **功能特性**：

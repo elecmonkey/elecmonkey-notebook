@@ -122,6 +122,8 @@
 *   **度量**：支持多种代价度量（如带宽、延迟），不仅是跳数。
 *   **特性**：支持认证、支持多路径负载均衡、收敛快。
 
+<VisualizationLink title="实验：OSPF 协议可视化" href="/computer-networking/visualization/ospf-protocol" desc="动态演示 OSPF 的邻居发现、DR/BDR 选举、LSA 泛洪与 SPF 计算过程。" />
+
 ### 5.5.2 OSPF 工作原理
 OSPF 的核心是让每个路由器构建并维护一个与全网一致的**链路状态数据库 (LSDB)**。
 1.  **邻居发现 (Hello Protocol)**：
@@ -160,6 +162,8 @@ OSPF 的核心是让每个路由器构建并维护一个与全网一致的**链�
     1.  从邻居 AS 获取子网可达性信息。
     2.  向本 AS 内部路由器传播可达性信息。
     3.  基于**策略**和属性选择最优路由。
+
+<VisualizationLink title="实验：BGP 协议可视化" href="/computer-networking/visualization/bgp-protocol" desc="动态演示 eBGP/iBGP 会话建立及 AS 间的路由传播与路径属性变化。" />
 
 ### 5.6.2 eBGP 与 iBGP
 BGP 会话分为两类：
