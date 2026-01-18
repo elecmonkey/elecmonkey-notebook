@@ -34,6 +34,7 @@ const DhcpProcess = defineAsyncComponent(() => import('./components/computer-net
 const ArpProtocol = defineAsyncComponent(() => import('./components/computer-networking/ArpProtocol.vue'))
 const OspfProtocol = defineAsyncComponent(() => import('./components/computer-networking/OspfProtocol.vue'))
 const BgpProtocol = defineAsyncComponent(() => import('./components/computer-networking/BgpProtocol.vue'))
+const CsmaCdProtocol = defineAsyncComponent(() => import('./components/computer-networking/CsmaCdProtocol.vue'))
 const TcpCongestionControl = defineAsyncComponent(() => import('./components/computer-networking/TcpCongestionControl.vue'))
 
 export default {
@@ -68,6 +69,7 @@ export default {
     app.component('ArpProtocol', ArpProtocol)
     app.component('OspfProtocol', OspfProtocol)
     app.component('BgpProtocol', BgpProtocol)
+    app.component('CsmaCdProtocol', CsmaCdProtocol)
     app.component('TcpCongestionControl', TcpCongestionControl)
     app.component('VisualizationLink', VisualizationLink)
     app.component('FeedbackFooter', FeedbackFooter)

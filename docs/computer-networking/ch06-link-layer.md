@@ -173,6 +173,13 @@ MAC 协议主要分为以下三类：
     *   **核心优势**：相比 CSMA，大幅减少了碰撞持续时间，提高了信道利用率。
     *   **应用**：经典有线以太网。
 
+<VisualizationLink
+  title="CSMA/CD 协议工作原理"
+  href="/computer-networking/visualization/csma-cd-protocol"
+  desc="交互式模拟以太网的载波侦听、碰撞检测、干扰信号广播及二进制指数退避过程。"
+/>
+
+
 ### 6.3.5 轮流协议（重点）
 试图结合随机接入（低负载延迟低）和信道划分（高负载无碰撞）的优点。
 1.  **轮询协议（Polling）**：
