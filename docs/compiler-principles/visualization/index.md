@@ -15,7 +15,9 @@ pageClass: no-print-button
 - [FIRST & FOLLOW 集合计算](./first-follow)
 - [文法转换 (消左递归/提左公因子)](./grammar-transformer)
 - [LL(1) 分析表构造](./ll1-analyzer)
+- [LR(0) 分析表构造](./lr0-analyzer)
 - [LR(1) 分析表构造](./lr1-analyzer)
+- [SLR(1) 分析表构造](./slr1-analyzer)
 
 ## 语义分析与中间代码 (Semantics & IR)
 - [语法制导翻译 (SDD/SDT)](./sdd-analyzer)
