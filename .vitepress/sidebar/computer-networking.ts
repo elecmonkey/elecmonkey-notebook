@@ -23,6 +23,7 @@ export default [
       { text: 'DHCP 协议流程', link: '/computer-networking/visualization/dhcp-process' },
       { text: 'ARP 地址解析', link: '/computer-networking/visualization/arp-protocol' },
       { text: 'CSMA/CD 协议', link: '/computer-networking/visualization/csma-cd-protocol' },
+      { text: 'CSMA/CA 协议 (WiFi)', link: '/computer-networking/visualization/csma-ca-protocol' },
       { text: 'OSPF 域内路由协议', link: '/computer-networking/visualization/ospf-protocol' },
       { text: 'BGP 域间路由协议', link: '/computer-networking/visualization/bgp-protocol' },
       { text: 'Dijkstra 算法可视化', link: '/computer-networking/visualization/dijkstra-algorithm' },
