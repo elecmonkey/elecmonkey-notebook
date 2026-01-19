@@ -74,7 +74,7 @@ export function parseTACBlock(input: string): TAC[] {
 }
 
 // 2. Build DAG
-export function buildDAG(tacs: TAC[], enableAssociativeFolding: boolean = false): DAGResult {
+export function buildDAG(tacs: TAC[], enableOptimizations: boolean = false): DAGResult {
   const nodes: DAGNode[] = [];
   let nodeIdCounter = 1;
   
@@ -167,7 +167,7 @@ export function buildDAG(tacs: TAC[], enableAssociativeFolding: boolean = false)
     let rightNode = getOrCreateLeaf(tac.arg2);
     
     // Constant Folding check
-    if (leftNode.isConstant && rightNode.isConstant && leftNode.constValue !== undefined && rightNode.constValue !== undefined) {
+    if (enableOptimizations && leftNode.isConstant && rightNode.isConstant && leftNode.constValue !== undefined && rightNode.constValue !== undefined) {
       // 计算结果
       let resVal = 0;
       switch(tac.op) {
@@ -184,7 +184,7 @@ export function buildDAG(tacs: TAC[], enableAssociativeFolding: boolean = false)
 
     // Algebraic Identities (代数恒等式)
     // x+0=x, 0+x=x, x*1=x, 1*x=x, x-0=x, x/1=x, x*0=0, 0*x=0
-    if (['+', '-', '*', '/'].includes(tac.op)) {
+    if (enableOptimizations && ['+', '-', '*', '/'].includes(tac.op)) {
       let simplifiedNode: DAGNode | null = null;
       const isConst = (n: DAGNode, v: number) => n.isConstant && n.constValue === v;
 
@@ -211,7 +211,7 @@ export function buildDAG(tacs: TAC[], enableAssociativeFolding: boolean = false)
     // Associative Constant Folding (Advanced)
     // Handle (A op C1) op C2 -> A op (C1 op C2) or (C1 op A) op C2 -> A op (C1 op C2)
     // Only for + and *
-    if (enableAssociativeFolding && (tac.op === '+' || tac.op === '*') && rightNode.isConstant && rightNode.constValue !== undefined) {
+    if (enableOptimizations && (tac.op === '+' || tac.op === '*') && rightNode.isConstant && rightNode.constValue !== undefined) {
       if (leftNode.op === tac.op) {
         // Case 1: (A op C1) op C2
         if (leftNode.right && leftNode.right.isConstant && leftNode.right.constValue !== undefined) {
@@ -363,92 +363,97 @@ function getOperandName(node: DAGNode): string {
 // Helper to convert DAG to Dot for Viz.js
 export function dagToDot(nodes: DAGNode[], showLiveness: boolean = true): string {
   let dot = 'digraph DAG {\n';
-  dot += '  rankdir=BT;\n'; // Bottom-up usually better for expression trees
+  // Increase nodesep and ranksep for looser layout
+  dot += '  rankdir=BT;\n'; 
+  dot += '  nodesep=0.8;\n'; 
+  dot += '  ranksep=0.8;\n';
   dot += '  node [shape=circle, fontname="Helvetica"];\n';
   
   // Helper for HTML escaping
   const escapeHtml = (str: string) => str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-  // Helper for Unicode Subscript
-  const toSubscript = (numStr: string) => {
-    const map: {[key: string]: string} = {
-      '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
-      '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
-    };
-    return numStr.split('').map(c => map[c] || c).join('');
-  };
-
-  // Format ID: n1 -> n₁ (Using Unicode instead of <SUB> for better vertical alignment)
+  // Format ID: n1 -> n1 (No subscript)
   const formatId = (id: string) => {
-    if (id.match(/^n\d+$/)) {
-      return `n${toSubscript(id.substring(1))}`;
-    }
     return escapeHtml(id);
   }
 
-  nodes.forEach(node => {
-    // Style
-    let nodeColor, nodeFontColor, nodeStyle, nodeFillColor;
-    let edgeColor, edgeStyle;
+  // Pre-calculate which nodes are parents (to detect orphaned leaves)
+  const isParent = new Set<string>();
+  nodes.forEach(n => {
+    if (n.left) isParent.add(n.left.id);
+    if (n.right) isParent.add(n.right.id);
+  });
 
-    if (!showLiveness) {
-      // Step 2: "Before optimization" - Unified style
-      nodeColor = 'none'; // No border
-      nodeFontColor = 'black';
-      nodeStyle = 'filled'; 
-      nodeFillColor = '#f0f0f0'; // Gray background
-      
-      edgeColor = 'black';
-      edgeStyle = 'solid';
-    } else {
-      // Step 3: "After optimization" - Liveness visualization
-      const isLive = node.isLive;
-      nodeColor = isLive ? 'black' : 'gray';
-      nodeFontColor = isLive ? 'black' : 'gray';
-      nodeStyle = isLive ? 'filled,solid' : 'filled,dashed';
-      nodeFillColor = node.isConstant ? '#e6fffa' : (node.op === 'leaf' ? '#fff' : '#f0f0f0');
-      
-      edgeColor = isLive ? 'black' : 'gray';
-      edgeStyle = isLive ? 'solid' : 'dashed';
+  nodes.forEach(node => {
+    // Filter out orphaned nodes:
+    // ... (logic unchanged)
+    /*
+    if (node.op === 'leaf' && 
+        !isParent.has(node.id) && 
+        node.identifiers.length === 0 &&
+        !node.isLive) {
+      return; // Skip rendering
+    }
+    */
+
+    // Style
+    let nodeColor = 'black';
+    let nodeStyle = 'solid'; // Circle border
+    let nodeFillColor = 'white'; // Transparent/White fill for circle
+    
+    // Edges
+    let edgeColor = 'black';
+    let edgeStyle = 'solid';
+
+    if (showLiveness) {
+       // Only change style if dead
+       if (!node.isLive) {
+         nodeColor = 'gray';
+         nodeStyle = 'dashed';
+         edgeColor = 'gray';
+         edgeStyle = 'dashed';
+         // Optional: make dead nodes lighter fill?
+         nodeFillColor = '#fafafa';
+       }
+       if (node.isConstant) {
+         // Highlight constant? Or just keep simple.
+         // Let's keep constants simple circle too, maybe slight fill?
+         // User asked for specific format: circle with ID inside.
+       }
     }
     
     // Label Construction (HTML-like)
-    let labelHtml = "";
+    let centerLabel = `<FONT POINT-SIZE="12">${formatId(node.id)}</FONT>`;
     
-    // 1. Node ID (top line)
-    labelHtml += formatId(node.id);
-    labelHtml += "<BR/>";
+    let xLabelHtml = "";
     
-    // 2. Main content (op or val)
-    if (node.op === 'leaf') {
-      labelHtml += escapeHtml(node.val || '?');
-    } else {
-      labelHtml += escapeHtml(node.op);
-    }
-    
-    // 3. Attached identifiers
+    // Identifiers (Right side)
     if (node.identifiers.length > 0) {
-      labelHtml += "<BR/><FONT POINT-SIZE=\"10\">{";
-      labelHtml += node.identifiers.map(escapeHtml).join(',');
-      labelHtml += "}</FONT>";
+      xLabelHtml += `<FONT POINT-SIZE="12">${node.identifiers.join(',')}</FONT><BR/>`;
     }
     
-    dot += `  ${node.id} [label=<${labelHtml}>, color="${nodeColor}", fontcolor="${nodeFontColor}", style="${nodeStyle}", fillcolor="${nodeFillColor}"];\n`;
+    // Operator/Value (Bottom)
+    let content = node.op === 'leaf' ? (node.val || '?') : node.op;
+    xLabelHtml += `<FONT POINT-SIZE="12"><B>${escapeHtml(content)}</B></FONT>`;
+    
+    // Using xlabel
+    // Adjusted width/height for smaller nodes
+    dot += `  ${node.id} [label=<${centerLabel}>, xlabel=<${xLabelHtml}>, shape="circle", width=0.5, height=0.5, fixedsize=true, color="${nodeColor}", style="${nodeStyle}", fillcolor="${nodeFillColor}"];\n`;
     
     // Edges
+    // Adjust arrowsize for smaller scale
+    const edgeAttr = `color="${edgeColor}", style="${edgeStyle}", arrowsize=0.8`;
+
     if (node.left) {
-      dot += `  ${node.left.id} -> ${node.id} [color="${edgeColor}", style="${edgeStyle}"];\n`; 
+      dot += `  ${node.left.id} -> ${node.id} [${edgeAttr}];\n`; 
     }
     if (node.right) {
-       dot += `  ${node.right.id} -> ${node.id} [color="${edgeColor}", style="${edgeStyle}"];\n`;
+       dot += `  ${node.right.id} -> ${node.id} [${edgeAttr}];\n`;
     }
   });
   
-  // Fix edges direction
-  // 上面的代码是 Child -> Parent? 
-  // node.left.id -> node.id  意味着 箭头从子节点指向父节点（数据流向）。
-  // 这种画法在数据流图中常见。
-  // 只要 rankdir=BT (Bottom-Top)，这样箭头向上指，符合直觉。
+  // Force xlabel placement?
+  dot += '  forcelabels=true;\n';
   
   dot += '}';
   return dot;

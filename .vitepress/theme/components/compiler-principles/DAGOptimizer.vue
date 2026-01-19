@@ -4,25 +4,37 @@ import { instance } from '@viz-js/viz'
 import { parseTACBlock, buildDAG, markDeadCode, reconstructCode, dagToDot, type DAGNode, type TAC } from './utils/dag-algo'
 
 // 预设案例 (Comprehensive Optimization Showcase)
-const defaultInput = `T1 = A + B
-T2 = T1 * 1
-T3 = A + B
-T4 = T3 + 1
-T5 = T4 + 2
-K = X + Y`
+const defaultInput = `// 1. 公共子表达式消除 (CSE)
+T1 = A + B
+T2 = A + B
 
-const defaultLiveVars = 'T2, T5'
+// 2. 代数恒等式 (Algebraic Identities)
+T3 = T1 * 1    // T3 等价于 T1
+T4 = T2 + 0    // T4 等价于 T2 (即 T1)
+
+// 3. 常量折叠 (Constant Folding)
+T5 = 2 * 3     // T5 编译时计算为 6
+
+// 4. 死代码 (Dead Code)
+Dead = X + Y   // 该变量后续未被使用(不在活跃列表中)
+
+// 5. 结果计算
+Final = T3 + T5`
+
+const defaultLiveVars = 'Final'
 
 // State
 const currentStep = ref(1)
 const inputCode = ref(defaultInput)
 const liveVarsInput = ref(defaultLiveVars)
 const tacs = ref<TAC[]>([])
-const dagNodes = ref<DAGNode[]>([])
+const initialDagNodes = ref<DAGNode[]>([])
+const optimizedDagNodes = ref<DAGNode[]>([])
 const optimizedCode = ref<string[]>([])
 const errorMsg = ref('')
 
-const vizContainerRef = ref<HTMLElement | null>(null)
+const initialVizRef = ref<HTMLElement | null>(null)
+const optimizedVizRef = ref<HTMLElement | null>(null)
 const legendRef = ref<HTMLElement | null>(null)
 
 // 拖拽相关逻辑
@@ -65,9 +77,9 @@ function handleMove(e: MouseEvent | TouchEvent) {
   let newY = startOffset.y + dy
 
   // 边界检查
-  if (legendRef.value && vizContainerRef.value) {
+  if (legendRef.value && initialVizRef.value) {
     const legendRect = legendRef.value.getBoundingClientRect()
-    const containerRect = vizContainerRef.value.getBoundingClientRect()
+    const containerRect = initialVizRef.value.getBoundingClientRect()
     
     // 计算相对边界
     // 初始位置是 bottom: 10, right: 10
@@ -108,8 +120,8 @@ function handleEnd() {
 const stepTitle = computed(() => {
   switch (currentStep.value) {
     case 1: return 'Step 1: 输入基本块代码与活跃变量'
-    case 2: return 'Step 2: 构建 DAG (公共子表达式消除 & 常量折叠)'
-    case 3: return 'Step 3: 死代码消除与代码重构'
+    case 2: return 'Step 2: 构建初始 DAG (仅执行 CSE)'
+    case 3: return 'Step 3: 执行高级优化 (代数恒等式、常量折叠、死代码消除)'
     default: return ''
   }
 })
@@ -122,11 +134,11 @@ function nextStep() {
     }
     currentStep.value++
     if (currentStep.value === 2) {
-      setTimeout(() => renderDAG(), 100)
+      setTimeout(() => renderDAG(initialDagNodes.value, initialVizRef.value, false), 100)
     }
     if (currentStep.value === 3) {
       optimize()
-      setTimeout(() => renderDAG(), 100) // Re-render with dead code marking
+      setTimeout(() => renderDAG(optimizedDagNodes.value, optimizedVizRef.value, true), 100)
     }
   }
 }
@@ -135,15 +147,9 @@ function prevStep() {
   if (currentStep.value > 1) {
     currentStep.value--
     if (currentStep.value === 2) {
-      // Re-render without dead code marking (conceptually) 
-      // Actually we just render the DAG state. 
-      // If we want to show "before dead code elimination", we should reset isLive?
-      // For simplicity, let's keep isLive logic simple:
-      // Step 2 shows structure. Step 3 highlights dead/live.
-      // So when going back to 2, we might want to clear live marks?
-      // Let's just re-analyze to reset.
+      // Re-render without optimizations (back to faithful construction)
       analyze()
-      setTimeout(() => renderDAG(), 100)
+      setTimeout(() => renderDAG(initialDagNodes.value, initialVizRef.value, false), 100)
     }
   }
 }
@@ -158,9 +164,9 @@ function analyze(): boolean {
       return false
     }
     
-    // Build DAG
-    const result = buildDAG(tacs.value)
-    dagNodes.value = result.nodes
+    // Build DAG (Step 2: Faithful Construction, NO optimizations except CSE)
+    const result = buildDAG(tacs.value, false)
+    initialDagNodes.value = result.nodes
     return true
   } catch (e: any) {
     errorMsg.value = e.message
@@ -169,34 +175,30 @@ function analyze(): boolean {
 }
 
 function optimize() {
-  // Re-build DAG with advanced optimizations (associative folding) enabled
+  // Re-build DAG with advanced optimizations enabled (Step 3)
   const result = buildDAG(tacs.value, true)
-  dagNodes.value = result.nodes
+  optimizedDagNodes.value = result.nodes
 
   // Parse live vars
   const liveOut = liveVarsInput.value.split(/[,，\s]+/).filter(s => s)
   
   // Mark Dead Code
-  // Note: varMap is internal to buildDAG, but we can infer or pass it out.
-  // For simplicity, markDeadCode in utils now searches identifiers in nodes.
-  // But wait, buildDAG creates nodes with identifiers. 
-  // Let's assume the utils function handles it correctly by searching identifiers.
-  markDeadCode(dagNodes.value, liveOut, new Map()) // map not strictly needed if we search nodes
+  markDeadCode(optimizedDagNodes.value, liveOut, new Map())
   
   // Reconstruct
-  optimizedCode.value = reconstructCode(dagNodes.value)
+  optimizedCode.value = reconstructCode(optimizedDagNodes.value)
 }
 
-async function renderDAG() {
-  if (!vizContainerRef.value) return
+async function renderDAG(nodes: DAGNode[], container: HTMLElement | null, showLiveness: boolean) {
+  if (!container) return
   
   try {
-    const dot = dagToDot(dagNodes.value, currentStep.value >= 3)
+    const dot = dagToDot(nodes, showLiveness)
     const viz = await instance()
     const svg = viz.renderSVGElement(dot)
     
-    vizContainerRef.value.innerHTML = ''
-    vizContainerRef.value.appendChild(svg)
+    container.innerHTML = ''
+    container.appendChild(svg)
     svg.style.maxWidth = '100%'
     svg.style.height = 'auto'
   } catch (e: any) {
@@ -247,31 +249,22 @@ onMounted(() => {
 
       <!-- Step 2: Viz (Visible if step >= 2) -->
       <div v-if="currentStep >= 2" class="step-section">
-        <h4>2. 构建 DAG (公共子表达式消除 & 常量折叠)</h4>
+        <h4>2. 构建初始 DAG (仅执行 CSE)</h4>
         <div class="step-content viz-layout">
           <div class="viz-container">
-            <div ref="vizContainerRef" class="viz-render"></div>
-            <div 
-              class="legend" 
-              v-if="currentStep >= 3"
-              ref="legendRef"
-              :style="{ transform: `translate(${legendOffset.x}px, ${legendOffset.y}px)` }"
-              @mousedown="handleStart"
-              @touchstart="handleStart"
-            >
-              <div class="item"><span class="swatch live"></span> 活跃节点 (Live)</div>
-              <div class="item"><span class="swatch dead"></span> 死节点 (Dead)</div>
-              <div class="item"><span class="swatch const"></span> 常量 (Constant)</div>
-              <div class="item"><span class="swatch leaf"></span> 叶子 (Leaf)</div>
-            </div>
+            <div ref="initialVizRef" class="viz-render"></div>
+            <!-- Legend removed per user request -->
           </div>
         </div>
       </div>
         
       <!-- Step 3: Result (Visible if step >= 3) -->
       <div v-if="currentStep >= 3" class="step-section">
-        <h4>3. 死代码消除与代码重构</h4>
+        <h4>3. 执行高级优化与代码重构</h4>
         <div class="step-content result-layout">
+          <div class="viz-container">
+            <div ref="optimizedVizRef" class="viz-render"></div>
+          </div>
           <div class="result-panel">
             <h5>优化后代码 (Optimized TAC)</h5>
             <div class="code-box">
